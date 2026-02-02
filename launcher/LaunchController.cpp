@@ -88,11 +88,11 @@ void LaunchController::decideAccount()
 
     // Find an account to use.
     auto accounts = APPLICATION->accounts();
-    if (accounts->count() <= 0 || !accounts->anyAccountIsValid()) {
-        // Tell the user they need to log in at least one account in order to play.
+    if (accounts->count() <= 0) {
+        // Tell the user they need to add at least one account in order to play.
         auto reply = CustomMessageBox::selectable(m_parentWidget, tr("No Accounts"),
-                                                  tr("In order to play Minecraft, you must have at least one Microsoft "
-                                                     "account which owns Minecraft logged in. "
+                                                  tr("In order to play Minecraft, you must add at least one account. "
+                                                     "You can add a Microsoft account or an offline account. "
                                                      "Would you like to open the account manager to add an account now?"),
                                                   QMessageBox::Information, QMessageBox::Yes | QMessageBox::No)
                          ->exec();
@@ -238,10 +238,13 @@ void LaunchController::login()
 
         MinecraftAccountPtr accountToCheck;
 
-        if (m_accountToUse->ownsMinecraft())
+        if (m_accountToUse->accountType() == AccountType::Offline) {
+            // Offline accounts do not have entitlements, but should still launch offline.
             accountToCheck = m_accountToUse;
-        else if (const MinecraftAccountPtr defaultAccount = APPLICATION->accounts()->defaultAccount();
-                 defaultAccount != nullptr && defaultAccount->ownsMinecraft()) {
+        } else if (m_accountToUse->ownsMinecraft()) {
+            accountToCheck = m_accountToUse;
+        } else if (const MinecraftAccountPtr defaultAccount = APPLICATION->accounts()->defaultAccount();
+                   defaultAccount != nullptr && defaultAccount->ownsMinecraft()) {
             accountToCheck = defaultAccount;
         } else {
             for (int i = 0; i < APPLICATION->accounts()->count(); i++) {
@@ -421,7 +424,8 @@ void LaunchController::launchInstance()
 
         m_launcher->prependStep(makeShared<PrintServers>(m_launcher, servers));
     } else {
-        online_mode = m_demo ? "demo" : "offline";
+        // online_mode = m_demo ? "demo" : "offline";
+        online_mode = "offline";
     }
 
     m_launcher->prependStep(makeShared<TextPrint>(m_launcher, "Launched instance in " + online_mode + " mode\n", MessageLevel::Launcher));

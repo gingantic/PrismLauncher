@@ -59,6 +59,15 @@ The translation effort for Prism Launcher is hosted on [Weblate](https://hosted.
 
 If you want to build Prism Launcher yourself, check the [build instructions](https://prismlauncher.org/wiki/development/build-instructions).
 
+### Windows (MSYS2 clang64)
+
+This repo includes a helper script `build.sh` that builds the `windows_mingw` preset and creates a portable folder.
+
+- Use the MSYS2 `clang64` shell.
+- Install deps:
+  `pacman -S --needed base-devel mingw-w64-clang-x86_64-toolchain mingw-w64-clang-x86_64-cmake mingw-w64-clang-x86_64-ninja mingw-w64-clang-x86_64-qt6 mingw-w64-clang-x86_64-7zip`
+- Run from repo root: `./build.sh`
+
 ## Sponsors & Partners
 
 We thank all the wonderful backers over at Open Collective! Support Prism Launcher by [becoming a backer](https://opencollective.com/prismlauncher).

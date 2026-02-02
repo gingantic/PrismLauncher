@@ -32,6 +32,9 @@ build
 install
 /install-*
 
+# Portable build output
+portable
+
 # Ctags File
 tags
 
