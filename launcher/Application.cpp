@@ -76,6 +76,8 @@
 #include "ui/setupwizard/ThemeWizardPage.h"
 
 #include "ui/dialogs/CustomMessageBox.h"
+#include "authlib/AuthlibInjectorUpdateTask.h"
+#include "cloudflared/CloudflaredUpdateTask.h"
 
 #include "ui/pagedialog/PageDialog.h"
 
@@ -718,6 +720,14 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
 
         // Editors
         m_settings->registerSetting("JsonEditor", QString());
+        m_settings->registerSetting("AuthlibInjectorAutoUpdate", true);
+        m_settings->registerSetting("AuthlibInjectorLatestTag", "");
+        m_settings->registerSetting("AuthlibInjectorJarPath", "");
+        m_settings->registerSetting("AuthlibInjectorLastChecked", "");
+        m_settings->registerSetting("CloudflaredAutoUpdate", true);
+        m_settings->registerSetting("CloudflaredLatestTag", "");
+        m_settings->registerSetting("CloudflaredBinaryPath", "");
+        m_settings->registerSetting("CloudflaredLastChecked", "");
 
         // Language
         m_settings->registerSetting("Language", QString());
@@ -1028,6 +1038,9 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
 
     // now we have network, download translation updates
     m_translations->downloadIndex();
+
+    checkAuthlibInjectorUpdates(false);
+    checkCloudflaredUpdates(false);
 
     // FIXME: what to do with these?
     m_profilers.insert("jprofiler", std::shared_ptr<BaseProfilerFactory>(new JProfilerFactory()));
@@ -1840,6 +1853,67 @@ Meta::Index* Application::metadataIndex()
         m_metadataIndex.reset(new Meta::Index());
     }
     return m_metadataIndex.get();
+}
+
+void Application::checkAuthlibInjectorUpdates(bool force)
+{
+    if (!m_settings || !m_network) {
+        return;
+    }
+
+    if (!force && !m_settings->get("AuthlibInjectorAutoUpdate").toBool()) {
+        return;
+    }
+
+    if (!force) {
+        const auto lastChecked = QDateTime::fromString(m_settings->get("AuthlibInjectorLastChecked").toString(), Qt::ISODate);
+        if (lastChecked.isValid() && lastChecked.secsTo(QDateTime::currentDateTimeUtc()) < 24 * 3600) {
+            return;
+        }
+    }
+
+    if (m_authlibInjectorUpdateTask && m_authlibInjectorUpdateTask->isRunning()) {
+        return;
+    }
+
+    m_authlibInjectorUpdateTask = makeShared<AuthlibInjectorUpdateTask>(m_settings.get(), m_network.get(), m_dataPath);
+    connect(m_authlibInjectorUpdateTask.get(), &Task::failed, this,
+            [](const QString& reason) { qWarning() << "Authlib-injector update failed:" << reason; });
+    connect(m_authlibInjectorUpdateTask.get(), &Task::succeeded, this, []() { qInfo() << "Authlib-injector update finished."; });
+    QMetaObject::invokeMethod(m_authlibInjectorUpdateTask.get(), &Task::start, Qt::QueuedConnection);
+}
+
+void Application::checkCloudflaredUpdates(bool force)
+{
+#if !defined(Q_OS_WIN32)
+    Q_UNUSED(force);
+    return;
+#else
+    if (!m_settings || !m_network) {
+        return;
+    }
+
+    if (!force && !m_settings->get("CloudflaredAutoUpdate").toBool()) {
+        return;
+    }
+
+    if (!force) {
+        const auto lastChecked = QDateTime::fromString(m_settings->get("CloudflaredLastChecked").toString(), Qt::ISODate);
+        if (lastChecked.isValid() && lastChecked.secsTo(QDateTime::currentDateTimeUtc()) < 24 * 3600) {
+            return;
+        }
+    }
+
+    if (m_cloudflaredUpdateTask && m_cloudflaredUpdateTask->isRunning()) {
+        return;
+    }
+
+    m_cloudflaredUpdateTask = makeShared<CloudflaredUpdateTask>(m_settings.get(), m_network.get(), m_dataPath);
+    connect(m_cloudflaredUpdateTask.get(), &Task::failed, this,
+            [](const QString& reason) { qWarning() << "Cloudflared update failed:" << reason; });
+    connect(m_cloudflaredUpdateTask.get(), &Task::succeeded, this, []() { qInfo() << "Cloudflared update finished."; });
+    QMetaObject::invokeMethod(m_cloudflaredUpdateTask.get(), &Task::start, Qt::QueuedConnection);
+#endif
 }
 
 void Application::updateCapabilities()

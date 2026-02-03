@@ -35,6 +35,7 @@
 
 #include "LauncherPartLaunch.h"
 
+#include <QFileInfo>
 #include <QRegularExpression>
 #include <QStandardPaths>
 
@@ -94,6 +95,24 @@ void LauncherPartLaunch::executeTask()
 
     m_launchScript = instance->createLaunchScript(m_session, m_targetToJoin);
     QStringList args = instance->javaArguments();
+    if (m_session && m_session->use_authlib_injector) {
+        if (!m_session->authlib_injector_path.isEmpty() && !m_session->authlib_injector_server.isEmpty()) {
+            if (QFileInfo(m_session->authlib_injector_path).isFile()) {
+                args << "-javaagent:" + m_session->authlib_injector_path + "=" + m_session->authlib_injector_server;
+            } else {
+                if (APPLICATION->settings()->get("AuthlibInjectorAutoUpdate").toBool()) {
+                    APPLICATION->checkAuthlibInjectorUpdates(true);
+                }
+                emit logLine(tr("Authlib-injector JAR path is invalid: %1").arg(m_session->authlib_injector_path),
+                             MessageLevel::Warning);
+            }
+        } else {
+            if (APPLICATION->settings()->get("AuthlibInjectorAutoUpdate").toBool()) {
+                APPLICATION->checkAuthlibInjectorUpdates(true);
+            }
+            emit logLine(tr("Authlib-injector is configured but missing its JAR path or server URL."), MessageLevel::Warning);
+        }
+    }
     QString allArgs = args.join(", ");
     emit logLine("Java Arguments:\n[" + m_parent->censorPrivateInfo(allArgs) + "]\n\n", MessageLevel::Launcher);
 

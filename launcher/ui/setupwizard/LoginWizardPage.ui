@@ -30,7 +30,7 @@
    <item>
     <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>To play online, add a Microsoft account. You can also add an offline account to play without signing in.</string>
+      <string>To play online, add a Microsoft account or a Yggdrasil account. You can also add an offline account to play without signing in.</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -48,6 +48,13 @@
     <widget class="QPushButton" name="pushButton">
      <property name="text">
       <string>Add Microsoft account</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="pushButtonYggdrasil">
+     <property name="text">
+      <string>Add Yggdrasil account</string>
      </property>
     </widget>
    </item>

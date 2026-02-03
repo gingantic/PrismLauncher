@@ -37,6 +37,8 @@
 
 #include "MinecraftAccount.h"
 
+#include "Application.h"
+
 #include <QColor>
 #include <QCryptographicHash>
 #include <QJsonArray>
@@ -72,6 +74,13 @@ MinecraftAccountPtr MinecraftAccount::createBlankMSA()
 {
     MinecraftAccountPtr account(new MinecraftAccount());
     account->data.type = AccountType::MSA;
+    return account;
+}
+
+MinecraftAccountPtr MinecraftAccount::createBlankYggdrasil()
+{
+    MinecraftAccountPtr account(new MinecraftAccount());
+    account->data.type = AccountType::Yggdrasil;
     return account;
 }
 
@@ -256,6 +265,13 @@ void MinecraftAccount::fillSession(AuthSessionPtr session)
         session->uuid = uuidFromUsername(session->player_name).toString().remove(s_removeChars);
     // 'legacy' or 'mojang', depending on account type
     session->user_type = typeString();
+    if (data.type == AccountType::Yggdrasil) {
+        const auto injectorPath = APPLICATION->settings()->get("AuthlibInjectorJarPath").toString();
+        const bool wantsInjector = !data.yggdrasilServerUrl.isEmpty();
+        session->use_authlib_injector = wantsInjector;
+        session->authlib_injector_path = injectorPath;
+        session->authlib_injector_server = data.yggdrasilServerUrl;
+    }
     if (!session->access_token.isEmpty()) {
         session->session = "token:" + data.accessToken() + ":" + data.profileId();
     } else {

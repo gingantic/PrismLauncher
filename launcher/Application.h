@@ -74,6 +74,8 @@ class ITheme;
 class MCEditTool;
 class ThemeManager;
 class IconTheme;
+class AuthlibInjectorUpdateTask;
+class CloudflaredUpdateTask;
 
 namespace Meta {
 class Index;
@@ -149,6 +151,9 @@ class Application : public QApplication {
     Meta::Index* metadataIndex();
 
     void updateCapabilities();
+
+    void checkAuthlibInjectorUpdates(bool force);
+    void checkCloudflaredUpdates(bool force);
 
     void detectLibraries();
 
@@ -266,6 +271,9 @@ class Application : public QApplication {
 
     QString m_rootPath;
     QString m_dataPath;
+
+    shared_qobject_ptr<AuthlibInjectorUpdateTask> m_authlibInjectorUpdateTask;
+    shared_qobject_ptr<CloudflaredUpdateTask> m_cloudflaredUpdateTask;
     Status m_status = Application::StartingUp;
     Capabilities m_capabilities;
     bool m_portable = false;

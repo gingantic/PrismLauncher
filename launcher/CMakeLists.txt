@@ -251,6 +251,10 @@ set(MINECRAFT_SOURCES
     minecraft/auth/steps/XboxProfileStep.h
     minecraft/auth/steps/XboxUserStep.cpp
     minecraft/auth/steps/XboxUserStep.h
+    minecraft/auth/YggdrasilAuth.cpp
+    minecraft/auth/YggdrasilAuth.h
+    minecraft/auth/YggdrasilUtils.cpp
+    minecraft/auth/YggdrasilUtils.h
 
     minecraft/update/AssetUpdateTask.h
     minecraft/update/AssetUpdateTask.cpp
@@ -796,6 +800,10 @@ SET(LAUNCHER_SOURCES
     # Application base
     Application.h
     Application.cpp
+    authlib/AuthlibInjectorUpdateTask.h
+    authlib/AuthlibInjectorUpdateTask.cpp
+    cloudflared/CloudflaredUpdateTask.h
+    cloudflared/CloudflaredUpdateTask.cpp
     DataMigrationTask.h
     DataMigrationTask.cpp
     ApplicationMessage.h
@@ -1084,6 +1092,8 @@ SET(LAUNCHER_SOURCES
     ui/dialogs/ImportResourceDialog.h
     ui/dialogs/MSALoginDialog.cpp
     ui/dialogs/MSALoginDialog.h
+    ui/dialogs/YggdrasilLoginDialog.cpp
+    ui/dialogs/YggdrasilLoginDialog.h
     ui/dialogs/NewComponentDialog.cpp
     ui/dialogs/NewComponentDialog.h
     ui/dialogs/NewInstanceDialog.cpp
@@ -1275,6 +1285,7 @@ qt_wrap_ui(LAUNCHER_UI
     ui/dialogs/IconPickerDialog.ui
     ui/dialogs/ImportResourceDialog.ui
     ui/dialogs/MSALoginDialog.ui
+    ui/dialogs/YggdrasilLoginDialog.ui
     ui/dialogs/AboutDialog.ui
     ui/dialogs/ReviewMessageBox.ui
     ui/dialogs/ScrollMessageBox.ui

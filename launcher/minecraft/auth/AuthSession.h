@@ -38,6 +38,10 @@ struct AuthSession {
 
     // Is this a demo session?
     bool demo = false;
+
+    bool use_authlib_injector = false;
+    QString authlib_injector_path;
+    QString authlib_injector_server;
 };
 
 using AuthSessionPtr = std::shared_ptr<AuthSession>;

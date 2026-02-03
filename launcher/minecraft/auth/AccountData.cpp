@@ -289,6 +289,8 @@ bool AccountData::resumeStateFromV3(QJsonObject data)
     auto typeS = typeV.toString();
     if (typeS == "MSA") {
         type = AccountType::MSA;
+    } else if (typeS == "Yggdrasil") {
+        type = AccountType::Yggdrasil;
     } else if (typeS == "Offline") {
         type = AccountType::Offline;
     } else {
@@ -305,6 +307,15 @@ bool AccountData::resumeStateFromV3(QJsonObject data)
         userToken = tokenFromJSONV3(data, "utoken");
         xboxApiToken = tokenFromJSONV3(data, "xrp-main");
         mojangservicesToken = tokenFromJSONV3(data, "xrp-mc");
+    } else if (type == AccountType::Yggdrasil) {
+        auto serverUrlV = data.value("yggdrasil-url");
+        if (serverUrlV.isString()) {
+            yggdrasilServerUrl = serverUrlV.toString();
+        }
+        auto injectorPathV = data.value("authlib-injector-path");
+        if (injectorPathV.isString()) {
+            authlibInjectorPath = injectorPathV.toString();
+        }
     }
 
     yggdrasilToken = tokenFromJSONV3(data, "ygg");
@@ -335,6 +346,14 @@ QJsonObject AccountData::saveState() const
         tokenToJSONV3(output, userToken, "utoken");
         tokenToJSONV3(output, xboxApiToken, "xrp-main");
         tokenToJSONV3(output, mojangservicesToken, "xrp-mc");
+    } else if (type == AccountType::Yggdrasil) {
+        output["type"] = "Yggdrasil";
+        if (!yggdrasilServerUrl.isEmpty()) {
+            output["yggdrasil-url"] = yggdrasilServerUrl;
+        }
+        if (!authlibInjectorPath.isEmpty()) {
+            output["authlib-injector-path"] = authlibInjectorPath;
+        }
     } else if (type == AccountType::Offline) {
         output["type"] = "Offline";
     }
@@ -375,6 +394,18 @@ QString AccountData::accountDisplayString() const
                 return xboxApiToken.extra["gtg"].toString();
             }
             return "Xbox profile missing";
+        }
+        case AccountType::Yggdrasil: {
+            if (yggdrasilToken.extra.contains("userName")) {
+                return yggdrasilToken.extra["userName"].toString();
+            }
+            if (!minecraftProfile.name.isEmpty()) {
+                return minecraftProfile.name;
+            }
+            if (!yggdrasilServerUrl.isEmpty()) {
+                return yggdrasilServerUrl;
+            }
+            return QObject::tr("Yggdrasil account");
         }
         default: {
             return "Invalid Account";

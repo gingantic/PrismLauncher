@@ -87,7 +87,7 @@ struct MinecraftProfile {
     Validity validity = Validity::None;
 };
 
-enum class AccountType { MSA, Offline };
+enum class AccountType { MSA, Yggdrasil, Offline };
 
 enum class AccountState { Unchecked, Offline, Working, Online, Disabled, Errored, Expired, Gone };
 
@@ -109,6 +109,8 @@ struct AccountData {
     AccountType type = AccountType::MSA;
 
     QString msaClientID;
+    QString yggdrasilServerUrl;
+    QString authlibInjectorPath;
     Token msaToken;
     Token userToken;
     Token xboxApiToken;
@@ -123,4 +125,7 @@ struct AccountData {
     QString internalId;
     QString errorString;
     AccountState accountState = AccountState::Unchecked;
+
+    QString yggdrasilUserName;
+    QString yggdrasilPassword;
 };

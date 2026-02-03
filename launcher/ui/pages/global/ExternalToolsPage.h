@@ -67,6 +67,8 @@ class ExternalToolsPage : public QWidget, public BasePage {
    private:
     void loadSettings();
     void applySettings();
+    void updateAuthlibInjectorStatus();
+    void updateCloudflaredStatus();
 
    private:
     Ui::ExternalToolsPage* ui;
@@ -79,4 +81,6 @@ class ExternalToolsPage : public QWidget, public BasePage {
     void on_mceditPathBtn_clicked();
     void on_mceditCheckBtn_clicked();
     void on_jsonEditorBrowseBtn_clicked();
+    void on_authlibInjectorCheckBtn_clicked();
+    void on_cloudflaredCheckBtn_clicked();
 };

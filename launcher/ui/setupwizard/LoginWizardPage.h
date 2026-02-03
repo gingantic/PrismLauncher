@@ -18,6 +18,7 @@ class LoginWizardPage : public BaseWizardPage {
     void retranslate() override;
    private slots:
     void on_pushButton_clicked();
+    void on_pushButtonYggdrasil_clicked();
     void on_pushButtonOffline_clicked();
 
    private:

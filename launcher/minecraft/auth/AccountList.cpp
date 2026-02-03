@@ -344,6 +344,18 @@ QVariant AccountList::data(const QModelIndex& index, int role) const
                         case AccountType::MSA: {
                             return tr("MSA", "Account type");
                         }
+                        case AccountType::Yggdrasil: {
+                            const auto baseUrl = account->accountData()->yggdrasilServerUrl;
+                            if (!baseUrl.isEmpty()) {
+                                const QUrl url(baseUrl);
+                                const auto host = url.host();
+                                if (!host.isEmpty()) {
+                                    return tr("Yggdrasil (%1)", "Account type").arg(host);
+                                }
+                                return tr("Yggdrasil (%1)", "Account type").arg(baseUrl);
+                            }
+                            return tr("Yggdrasil", "Account type");
+                        }
                         case AccountType::Offline: {
                             return tr("Offline", "Account type");
                         }
@@ -396,7 +408,7 @@ QVariant AccountList::headerData(int section, [[maybe_unused]] Qt::Orientation o
                 case NameColumn:
                     return tr("User name of the account.");
                 case TypeColumn:
-                    return tr("Type of the account (MSA or Offline)");
+                    return tr("Type of the account (MSA, Yggdrasil, or Offline)");
                 case StatusColumn:
                     return tr("Current status of the account.");
                 default:

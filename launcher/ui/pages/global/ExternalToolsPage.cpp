@@ -42,10 +42,14 @@
 #include <QTabBar>
 
 #include <FileSystem.h>
+#include <tasks/Task.h>
 #include <tools/MCEditTool.h>
 #include "Application.h"
+#include "authlib/AuthlibInjectorUpdateTask.h"
+#include "cloudflared/CloudflaredUpdateTask.h"
 #include "settings/SettingsObject.h"
 #include "tools/BaseProfiler.h"
+#include "ui/dialogs/ProgressDialog.h"
 
 ExternalToolsPage::ExternalToolsPage(QWidget* parent) : QWidget(parent), ui(new Ui::ExternalToolsPage)
 {
@@ -73,6 +77,10 @@ void ExternalToolsPage::loadSettings()
 
     // Editors
     ui->jsonEditorTextBox->setText(s->get("JsonEditor").toString());
+    ui->authlibInjectorAutoUpdate->setChecked(s->get("AuthlibInjectorAutoUpdate").toBool());
+    updateAuthlibInjectorStatus();
+    ui->cloudflaredAutoUpdate->setChecked(s->get("CloudflaredAutoUpdate").toBool());
+    updateCloudflaredStatus();
 }
 void ExternalToolsPage::applySettings()
 {
@@ -91,6 +99,40 @@ void ExternalToolsPage::applySettings()
         }
     }
     s->set("JsonEditor", jsonEditor);
+    s->set("AuthlibInjectorAutoUpdate", ui->authlibInjectorAutoUpdate->isChecked());
+    s->set("CloudflaredAutoUpdate", ui->cloudflaredAutoUpdate->isChecked());
+}
+
+void ExternalToolsPage::updateAuthlibInjectorStatus()
+{
+    auto s = APPLICATION->settings();
+    const auto tag = s->get("AuthlibInjectorLatestTag").toString();
+    const auto jarPath = s->get("AuthlibInjectorJarPath").toString();
+    if (!jarPath.isEmpty() && QFileInfo(jarPath).isFile()) {
+        if (!tag.isEmpty()) {
+            ui->authlibInjectorStatus->setText(tr("Installed: %1").arg(tag));
+        } else {
+            ui->authlibInjectorStatus->setText(tr("Installed"));
+        }
+    } else {
+        ui->authlibInjectorStatus->setText(tr("Not downloaded"));
+    }
+}
+
+void ExternalToolsPage::updateCloudflaredStatus()
+{
+    auto s = APPLICATION->settings();
+    const auto tag = s->get("CloudflaredLatestTag").toString();
+    const auto binaryPath = s->get("CloudflaredBinaryPath").toString();
+    if (!binaryPath.isEmpty() && QFileInfo(binaryPath).isFile()) {
+        if (!tag.isEmpty()) {
+            ui->cloudflaredStatus->setText(tr("Installed: %1").arg(tag));
+        } else {
+            ui->cloudflaredStatus->setText(tr("Installed"));
+        }
+    } else {
+        ui->cloudflaredStatus->setText(tr("Not downloaded"));
+    }
 }
 
 void ExternalToolsPage::on_jprofilerPathBtn_clicked()
@@ -205,6 +247,42 @@ void ExternalToolsPage::on_jsonEditorBrowseBtn_clicked()
         ui->jsonEditorTextBox->setText(cooked_file);
     } else {
         QMessageBox::warning(this, tr("Invalid"), tr("The file chosen does not seem to be an executable"));
+    }
+}
+
+void ExternalToolsPage::on_authlibInjectorCheckBtn_clicked()
+{
+    auto task = makeShared<AuthlibInjectorUpdateTask>(APPLICATION->settings(), APPLICATION->network(), APPLICATION->dataRoot());
+    ProgressDialog progDialog(this);
+    progDialog.setSkipButton(true, tr("Abort"));
+    progDialog.execWithTask(task.get());
+
+    updateAuthlibInjectorStatus();
+
+    if (task->getState() == Task::State::Failed) {
+        auto reason = task->failReason();
+        if (reason.isEmpty()) {
+            reason = tr("Authlib-injector update failed.");
+        }
+        QMessageBox::warning(this, tr("Error"), reason);
+    }
+}
+
+void ExternalToolsPage::on_cloudflaredCheckBtn_clicked()
+{
+    auto task = makeShared<CloudflaredUpdateTask>(APPLICATION->settings(), APPLICATION->network(), APPLICATION->dataRoot());
+    ProgressDialog progDialog(this);
+    progDialog.setSkipButton(true, tr("Abort"));
+    progDialog.execWithTask(task.get());
+
+    updateCloudflaredStatus();
+
+    if (task->getState() == Task::State::Failed) {
+        auto reason = task->failReason();
+        if (reason.isEmpty()) {
+            reason = tr("Cloudflared update failed.");
+        }
+        QMessageBox::warning(this, tr("Error"), reason);
     }
 }
 

@@ -44,6 +44,7 @@
 #include "ui/MainWindow.h"
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/MSALoginDialog.h"
+#include "ui/dialogs/YggdrasilLoginDialog.h"
 #include "ui/dialogs/ProfileSelectDialog.h"
 #include "ui/dialogs/ProfileSetupDialog.h"
 #include "ui/dialogs/ProgressDialog.h"
@@ -367,6 +368,21 @@ bool LaunchController::reauthenticateAccount(MinecraftAccountPtr account)
         accounts->removeAccount(accounts->index(accounts->findAccountByProfileId(account->profileId())));
         if (account->accountType() == AccountType::MSA) {
             auto newAccount = MSALoginDialog::newAccount(m_parentWidget);
+
+            if (newAccount != nullptr) {
+                accounts->addAccount(newAccount);
+
+                if (isDefault)
+                    accounts->setDefaultAccount(newAccount);
+
+                if (m_accountToUse == account) {
+                    m_accountToUse = nullptr;
+                    decideAccount();
+                }
+                return true;
+            }
+        } else if (account->accountType() == AccountType::Yggdrasil) {
+            auto newAccount = YggdrasilLoginDialog::newAccount(m_parentWidget);
 
             if (newAccount != nullptr) {
                 accounts->addAccount(newAccount);

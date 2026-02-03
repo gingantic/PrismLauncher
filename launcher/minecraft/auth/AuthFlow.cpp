@@ -12,6 +12,7 @@
 #include "minecraft/auth/steps/XboxAuthorizationStep.h"
 #include "minecraft/auth/steps/XboxProfileStep.h"
 #include "minecraft/auth/steps/XboxUserStep.h"
+#include "minecraft/auth/YggdrasilAuth.h"
 #include "tasks/Task.h"
 
 #include "AuthFlow.h"
@@ -39,6 +40,14 @@ AuthFlow::AuthFlow(AccountData* data, Action action) : Task(), m_data(data)
         m_steps.append(makeShared<XboxProfileStep>(m_data));
         m_steps.append(makeShared<EntitlementsStep>(m_data));
         m_steps.append(makeShared<MinecraftProfileStep>(m_data));
+        m_steps.append(makeShared<GetSkinStep>(m_data));
+    } else if (data->type == AccountType::Yggdrasil) {
+        if (action == Action::Refresh) {
+            m_steps.append(makeShared<YggdrasilRefreshStep>(m_data));
+        } else {
+            m_steps.append(makeShared<YggdrasilLoginStep>(m_data));
+        }
+        m_steps.append(makeShared<YggdrasilProfileStep>(m_data));
         m_steps.append(makeShared<GetSkinStep>(m_data));
     }
     changeState(AccountTaskState::STATE_CREATED);

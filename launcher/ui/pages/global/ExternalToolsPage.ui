@@ -139,6 +139,132 @@
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="authlibInjectorBox">
+         <property name="title">
+          <string>Authlib-&amp;Injector</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_authlib">
+          <item>
+           <widget class="QLabel" name="authlibInjectorSourceLink">
+            <property name="text">
+             <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Source: &lt;a href=&quot;https://github.com/yushijinhun/authlib-injector/releases&quot;&gt;yushijinhun/authlib-injector (GitHub releases)&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="openExternalLinks">
+             <bool>true</bool>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="authlibInjectorAutoUpdate">
+            <property name="text">
+             <string>Auto-update authlib-injector</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="authlibInjectorButtonsLayout">
+            <item>
+             <widget class="QPushButton" name="authlibInjectorCheckBtn">
+              <property name="text">
+               <string>Check Now</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="authlibInjectorSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QLabel" name="authlibInjectorStatus">
+            <property name="text">
+             <string>Not downloaded</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      <item>
+       <widget class="QGroupBox" name="cloudflaredBox">
+        <property name="title">
+         <string>Cloudflared</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_cloudflared">
+         <item>
+          <widget class="QLabel" name="cloudflaredSourceLink">
+           <property name="text">
+            <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Source: &lt;a href=&quot;https://github.com/cloudflare/cloudflared/releases&quot;&gt;cloudflare/cloudflared (GitHub releases)&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="openExternalLinks">
+            <bool>true</bool>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="cloudflaredAutoUpdate">
+           <property name="text">
+            <string>Auto-update cloudflared</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="cloudflaredButtonsLayout">
+           <item>
+            <widget class="QPushButton" name="cloudflaredCheckBtn">
+             <property name="text">
+              <string>Check Now</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="cloudflaredSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QLabel" name="cloudflaredStatus">
+           <property name="text">
+            <string>Not downloaded</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+       <item>
         <widget class="QGroupBox" name="profilersBox">
          <property name="title">
           <string>&amp;Profilers</string>
