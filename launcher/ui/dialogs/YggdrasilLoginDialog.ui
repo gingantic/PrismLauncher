@@ -17,9 +17,12 @@
    <item>
     <widget class="QLabel" name="infoLabel">
      <property name="text">
-      <string>Enter the Yggdrasil server URL and your credentials.</string>
+      <string>Enter the Yggdrasil server URL and your credentials. &lt;a href=&quot;https://github.com/gingantic/PrismLauncher/blob/develop/doc/alternative-auth-servers.md&quot;&gt;Read More&lt;/a&gt;</string>
      </property>
      <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+     <property name="openExternalLinks">
       <bool>true</bool>
      </property>
     </widget>
@@ -34,9 +37,12 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QLineEdit" name="authServerUrl">
-       <property name="placeholderText">
-        <string>https://account.ely.by/api/authlib-injector</string>
+      <widget class="QComboBox" name="authServerUrl">
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+       <property name="insertPolicy">
+        <enum>QComboBox::NoInsert</enum>
        </property>
       </widget>
      </item>

@@ -65,3 +65,4 @@ flatbuild
 
 # Snap
 *.snap
+build_auto_msvc.cmd

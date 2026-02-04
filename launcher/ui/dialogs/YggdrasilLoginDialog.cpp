@@ -12,6 +12,12 @@ YggdrasilLoginDialog::YggdrasilLoginDialog(QWidget* parent) : QDialog(parent), u
 {
     ui->setupUi(this);
 
+    ui->authServerUrl->addItems(
+        { "https://account.ely.by/api/authlib-injector", "https://skin.prinzeugen.net/api/yggdrasil",
+          "https://littleskin.cn/api/yggdrasil", "https://drasl.unmojang.org/authlib-injector" });
+    ui->authServerUrl->setCurrentIndex(0);
+    ui->authServerUrl->setEditable(true);
+
     ui->buttonBox->button(QDialogButtonBox::Ok)->setText(tr("Add"));
     ui->buttonBox->button(QDialogButtonBox::Cancel)->setText(tr("Cancel"));
 
@@ -37,7 +43,7 @@ void YggdrasilLoginDialog::startLogin()
 {
     ui->statusLabel->clear();
 
-    const auto serverUrlText = ui->authServerUrl->text().trimmed();
+    const auto serverUrlText = ui->authServerUrl->currentText().trimmed();
     const auto username = ui->username->text().trimmed();
     const auto password = ui->password->text();
 
