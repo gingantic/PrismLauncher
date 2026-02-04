@@ -43,6 +43,13 @@ if(MSVC)
     # This appears to not always be a defualt compiler option in CMAKE
     set(CMAKE_CXX_FLAGS "/EHsc ${CMAKE_CXX_FLAGS}")
 
+    # Check if sccache is being used (sccache doesn't work well with /GL and /LTCG)
+    set(USING_SCCACHE FALSE)
+    if(CMAKE_C_COMPILER_LAUNCHER MATCHES "sccache" OR CMAKE_CXX_COMPILER_LAUNCHER MATCHES "sccache")
+        set(USING_SCCACHE TRUE)
+        message(STATUS "sccache detected: /GL and /LTCG will be disabled for Debug builds, but enabled for Release builds")
+    endif()
+
     # LINK accepts /SUBSYSTEM whics sets if we are a WINDOWS (gui) or a CONSOLE programs
     # This implicitly selects an entrypoint specific to the subsystem selected
     # qtmain/QtEntryPointLib provides the correct entrypoint (wWinMain) for gui programs
@@ -51,15 +58,37 @@ if(MSVC)
     # /LTCG allows for linking wholy optimizated programs
     # /MANIFEST:NO disables generating a manifest file, we instead provide our own
     # /STACK sets the stack reserve size, ATL's pack list needs 3-4 MiB as of November 2022, provide 8 MiB
-    set(CMAKE_EXE_LINKER_FLAGS "/LTCG /MANIFEST:NO /STACK:8388608 ${CMAKE_EXE_LINKER_FLAGS}")
+    # Always enable /LTCG for Release builds (even with sccache) for maximum optimization
+    # Disable for Debug/RelWithDebInfo to allow sccache caching
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/LTCG /MANIFEST:NO /STACK:8388608 ${CMAKE_EXE_LINKER_FLAGS_RELEASE}")
+    set(CMAKE_EXE_LINKER_FLAGS "/MANIFEST:NO /STACK:8388608 ${CMAKE_EXE_LINKER_FLAGS}")
 
     # /GL enables whole program optimizations
-    # /Gw helps reduce binary size
-    # /Gy allows the compiler to package individual functions
+    # /Gw helps reduce binary size (put data in COMDAT sections)
+    # /Gy allows the compiler to package individual functions (function-level linking)
     # /guard:cf enables control flow guard
+    # /O2 enables maximum optimization (speed)
+    # /Ob2 enables aggressive inlining (inline any function, even if not marked inline)
+    # /Oi enables generation of intrinsic functions (use CPU-specific instructions)
+    # /Ot favors fast code over small code (default with /O2, but explicit)
+    # /fp:fast uses fast floating-point model (may reduce precision slightly, but much faster)
+    # Always enable /GL for Release builds (even with sccache) for maximum optimization
+    # Disable for Debug/RelWithDebInfo to allow sccache caching
     foreach(lang C CXX)
-        set("CMAKE_${lang}_FLAGS_RELEASE" "/GL /Gw /Gy /guard:cf")
+        # Release builds always get /GL and aggressive optimizations
+        set("CMAKE_${lang}_FLAGS_RELEASE" "/GL /Gw /Gy /guard:cf /O2 /Ob2 /Oi /Ot /fp:fast ${CMAKE_${lang}_FLAGS_RELEASE}")
     endforeach()
+    
+    # Disable incremental linking for Release builds (faster linking, smaller binaries)
+    # /INCREMENTAL:NO prevents creation of .ilk files and allows better optimizations
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/INCREMENTAL:NO ${CMAKE_EXE_LINKER_FLAGS_RELEASE}")
+    
+    # Enable multi-processor compilation (parallel builds)
+    # CMake usually sets this automatically, but we ensure it's enabled
+    if(NOT DEFINED CMAKE_CXX_FLAGS_MP)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
+    endif()
 
     # See https://github.com/ccache/ccache/issues/1040
     # Note, CMake 3.25 replaces this with CMAKE_MSVC_DEBUG_INFORMATION_FORMAT

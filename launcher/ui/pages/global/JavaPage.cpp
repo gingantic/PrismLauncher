@@ -63,9 +63,7 @@ JavaPage::JavaPage(QWidget* parent) : QWidget(parent), ui(new Ui::JavaPage)
     ui->setupUi(this);
 
     if (BuildConfig.JAVA_DOWNLOADER_ENABLED) {
-        ui->managedJavaList->initialize(new JavaInstallList(this, true));
-        ui->managedJavaList->setResizeOn(2);
-        ui->managedJavaList->selectCurrent();
+        // Defer heavy Java scanning until page is actually opened
         ui->managedJavaList->setEmptyString(tr("No managed Java versions are installed"));
         ui->managedJavaList->setEmptyErrorString(tr("Couldn't load the managed Java list!"));
     } else
@@ -82,6 +80,25 @@ void JavaPage::retranslate()
     ui->retranslateUi(this);
 }
 
+void JavaPage::openedImpl()
+{
+    // Lazy initialization: only scan for Java when the page is first opened
+    if (BuildConfig.JAVA_DOWNLOADER_ENABLED && !m_managedJavaListInitialized) {
+        initializeManagedJavaList();
+    }
+}
+
+void JavaPage::initializeManagedJavaList()
+{
+    if (m_managedJavaListInitialized)
+        return;
+    
+    ui->managedJavaList->initialize(new JavaInstallList(this, true));
+    ui->managedJavaList->setResizeOn(2);
+    ui->managedJavaList->selectCurrent();
+    m_managedJavaListInitialized = true;
+}
+
 bool JavaPage::apply()
 {
     ui->javaSettings->saveSettings();
@@ -91,9 +108,16 @@ bool JavaPage::apply()
 
 void JavaPage::on_downloadJavaButton_clicked()
 {
+    // Ensure managed Java list is initialized before using it
+    if (BuildConfig.JAVA_DOWNLOADER_ENABLED && !m_managedJavaListInitialized) {
+        initializeManagedJavaList();
+    }
+    
     auto jdialog = new Java::InstallDialog({}, nullptr, this);
     jdialog->exec();
-    ui->managedJavaList->loadList();
+    if (m_managedJavaListInitialized) {
+        ui->managedJavaList->loadList();
+    }
 }
 
 void JavaPage::on_removeJavaButton_clicked()
@@ -125,5 +149,12 @@ void JavaPage::on_removeJavaButton_clicked()
 }
 void JavaPage::on_refreshJavaButton_clicked()
 {
-    ui->managedJavaList->loadList();
+    // Ensure managed Java list is initialized before refreshing
+    if (BuildConfig.JAVA_DOWNLOADER_ENABLED && !m_managedJavaListInitialized) {
+        initializeManagedJavaList();
+    }
+    
+    if (m_managedJavaListInitialized) {
+        ui->managedJavaList->loadList();
+    }
 }

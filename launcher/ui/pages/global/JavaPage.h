@@ -60,6 +60,7 @@ class JavaPage : public QWidget, public BasePage {
     QString id() const override { return "java-settings"; }
     QString helpPage() const override { return "Java-settings"; }
     void retranslate() override;
+    void openedImpl() override;
 
     bool apply() override;
 
@@ -69,5 +70,9 @@ class JavaPage : public QWidget, public BasePage {
     void on_refreshJavaButton_clicked();
 
    private:
+    void initializeManagedJavaList();
+    
+   private:
     Ui::JavaPage* ui;
+    bool m_managedJavaListInitialized = false;
 };
