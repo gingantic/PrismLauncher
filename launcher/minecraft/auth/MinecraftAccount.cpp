@@ -38,6 +38,7 @@
 #include "MinecraftAccount.h"
 
 #include "Application.h"
+#include "settings/SettingsObject.h"
 
 #include <QColor>
 #include <QCryptographicHash>
