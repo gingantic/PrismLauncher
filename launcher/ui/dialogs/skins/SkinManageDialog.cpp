@@ -28,11 +28,13 @@
 #include <QFileInfo>
 #include <QKeyEvent>
 #include <QListView>
+#include <QMenu>
 #include <QMimeDatabase>
 #include <QPainter>
 #include <QUrl>
 
 #include "Application.h"
+#include "settings/SettingsObject.h"
 #include "DesktopServices.h"
 #include "Json.h"
 #include "QObjectPtr.h"

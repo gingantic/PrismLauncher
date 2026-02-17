@@ -37,6 +37,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include <QApplication>
 #include <QDateTime>
 #include <QDebug>
@@ -44,12 +46,10 @@
 #include <QIcon>
 #include <QMutex>
 #include <QUrl>
-#include <memory>
 
-#include <BaseInstance.h>
+#include "QObjectPtr.h"
 
-#include "launch/LogModel.h"
-#include "minecraft/launch/MinecraftTarget.h"
+#include "minecraft/auth/MinecraftAccount.h"
 
 class LaunchController;
 class LocalPeer;
@@ -76,6 +76,12 @@ class ThemeManager;
 class IconTheme;
 class AuthlibInjectorUpdateTask;
 class CloudflaredUpdateTask;
+class BaseInstance;
+
+class LogModel;
+
+struct MinecraftTarget;
+class MinecraftAccount;
 
 namespace Meta {
 class Index;
@@ -217,8 +223,8 @@ class Application : public QApplication {
     bool launch(BaseInstance* instance,
                 bool online = true,
                 bool demo = false,
-                MinecraftTarget::Ptr targetToJoin = nullptr,
-                MinecraftAccountPtr accountToUse = nullptr,
+                std::shared_ptr<MinecraftTarget> targetToJoin = nullptr,
+                shared_qobject_ptr<MinecraftAccount> accountToUse = nullptr,
                 const QString& offlineName = QString());
     bool kill(BaseInstance* instance);
     void closeCurrentWindow();
