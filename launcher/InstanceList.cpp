@@ -923,11 +923,13 @@ class InstanceStaging : public Task {
         connect(child, &Task::failed, this, &InstanceStaging::childFailed);
         connect(child, &Task::aborted, this, &InstanceStaging::childAborted);
         connect(child, &Task::abortStatusChanged, this, &InstanceStaging::setAbortable);
+        connect(child, &Task::abortButtonTextChanged, this, &InstanceStaging::setAbortButtonText);
         connect(child, &Task::status, this, &InstanceStaging::setStatus);
         connect(child, &Task::details, this, &InstanceStaging::setDetails);
         connect(child, &Task::progress, this, &InstanceStaging::setProgress);
         connect(child, &Task::stepProgress, this, &InstanceStaging::propagateStepProgress);
         connect(&m_backoffTimer, &QTimer::timeout, this, &InstanceStaging::childSucceeded);
+        m_backoffTimer.setSingleShot(true);
     }
 
     virtual ~InstanceStaging() {}
@@ -938,9 +940,7 @@ class InstanceStaging : public Task {
         if (!canAbort())
             return false;
 
-        m_child->abort();
-
-        return Task::abort();
+        return m_child->abort();
     }
     bool canAbort() const override { return (m_child && m_child->canAbort()); }
 
@@ -959,13 +959,17 @@ class InstanceStaging : public Task {
    private slots:
     void childSucceeded()
     {
+        if (!isRunning())
+            return;
         unsigned sleepTime = backoff();
         if (m_parent->commitStagedInstance(m_stagingPath, *m_child.get(), m_child->group(), *m_child.get())) {
+            m_backoffTimer.stop();
             emitSucceeded();
             return;
         }
         // we actually failed, retry?
         if (sleepTime == maxBackoff) {
+            m_backoffTimer.stop();
             emitFailed(tr("Failed to commit instance, even after multiple retries. It is being blocked by something."));
             return;
         }
@@ -974,12 +978,14 @@ class InstanceStaging : public Task {
     }
     void childFailed(const QString& reason)
     {
+        m_backoffTimer.stop();
         m_parent->destroyStagingPath(m_stagingPath);
         emitFailed(reason);
     }
 
     void childAborted()
     {
+        m_backoffTimer.stop();
         m_parent->destroyStagingPath(m_stagingPath);
         emitAborted();
     }
