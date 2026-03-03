@@ -19,10 +19,9 @@ class YggdrasilLoginStep : public AuthStep {
     QString describe() override;
 
    private slots:
-    void onRequestDone();
+    void onRequestDone(QByteArray* response);
 
    private:
-    std::unique_ptr<QByteArray> m_response;
     Net::Upload::Ptr m_request;
     NetJob::Ptr m_task;
 };
@@ -38,10 +37,9 @@ class YggdrasilRefreshStep : public AuthStep {
     QString describe() override;
 
    private slots:
-    void onRequestDone();
+    void onRequestDone(QByteArray* response);
 
    private:
-    std::unique_ptr<QByteArray> m_response;
     Net::Upload::Ptr m_request;
     NetJob::Ptr m_task;
 };
@@ -57,10 +55,9 @@ class YggdrasilProfileStep : public AuthStep {
     QString describe() override;
 
    private slots:
-    void onRequestDone();
+    void onRequestDone(QByteArray* response);
 
    private:
-    std::unique_ptr<QByteArray> m_response;
     Net::Download::Ptr m_request;
     NetJob::Ptr m_task;
 };

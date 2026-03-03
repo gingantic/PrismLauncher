@@ -78,20 +78,20 @@ void YggdrasilLoginStep::perform()
         { "Accept", "application/json" },
     };
 
-    m_response.reset(new QByteArray());
-    m_request = Net::Upload::makeByteArray(url, m_response.get(), QJsonDocument(request).toJson(QJsonDocument::Compact));
+    auto [requestPtr, response] = Net::Upload::makeByteArray(url, QJsonDocument(request).toJson(QJsonDocument::Compact));
+    m_request = requestPtr;
     m_request->addHeaderProxy(std::make_unique<Net::RawHeaderProxy>(headers));
 
     m_task.reset(new NetJob("YggdrasilLoginStep", APPLICATION->network()));
     m_task->setAskRetry(false);
     m_task->addNetAction(m_request);
 
-    connect(m_task.get(), &Task::finished, this, &YggdrasilLoginStep::onRequestDone);
+    connect(m_task.get(), &Task::finished, this, [this, response] { onRequestDone(response); });
 
     m_task->start();
 }
 
-void YggdrasilLoginStep::onRequestDone()
+void YggdrasilLoginStep::onRequestDone(QByteArray* response)
 {
     m_data->yggdrasilPassword.clear();
 
@@ -100,7 +100,7 @@ void YggdrasilLoginStep::onRequestDone()
         qWarning() << " HTTP Status       :" << m_request->replyStatusCode();
         qWarning() << " Internal error no.:" << m_request->error();
         qWarning() << " Error string      :" << m_request->errorString();
-        qWarning() << " Response          :" << QString::fromUtf8(*m_response);
+        qWarning() << " Response          :" << QString::fromUtf8(*response);
 
         if (Net::isApplicationError(m_request->error())) {
             emit finished(AccountTaskState::STATE_FAILED_HARD, tr("Authentication failed: %1").arg(m_request->errorString()));
@@ -111,7 +111,7 @@ void YggdrasilLoginStep::onRequestDone()
     }
 
     QJsonParseError parseError;
-    QJsonDocument doc = QJsonDocument::fromJson(*m_response, &parseError);
+    QJsonDocument doc = QJsonDocument::fromJson(*response, &parseError);
     if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
         emit finished(AccountTaskState::STATE_FAILED_SOFT, tr("Authentication response could not be parsed"));
         return;
@@ -202,27 +202,27 @@ void YggdrasilRefreshStep::perform()
         { "Accept", "application/json" },
     };
 
-    m_response.reset(new QByteArray());
-    m_request = Net::Upload::makeByteArray(url, m_response.get(), QJsonDocument(request).toJson(QJsonDocument::Compact));
+    auto [requestPtr, response] = Net::Upload::makeByteArray(url, QJsonDocument(request).toJson(QJsonDocument::Compact));
+    m_request = requestPtr;
     m_request->addHeaderProxy(std::make_unique<Net::RawHeaderProxy>(headers));
 
     m_task.reset(new NetJob("YggdrasilRefreshStep", APPLICATION->network()));
     m_task->setAskRetry(false);
     m_task->addNetAction(m_request);
 
-    connect(m_task.get(), &Task::finished, this, &YggdrasilRefreshStep::onRequestDone);
+    connect(m_task.get(), &Task::finished, this, [this, response] { onRequestDone(response); });
 
     m_task->start();
 }
 
-void YggdrasilRefreshStep::onRequestDone()
+void YggdrasilRefreshStep::onRequestDone(QByteArray* response)
 {
     if (m_request->error() != QNetworkReply::NoError) {
         qWarning() << "Error refreshing Yggdrasil session:";
         qWarning() << " HTTP Status       :" << m_request->replyStatusCode();
         qWarning() << " Internal error no.:" << m_request->error();
         qWarning() << " Error string      :" << m_request->errorString();
-        qWarning() << " Response          :" << QString::fromUtf8(*m_response);
+        qWarning() << " Response          :" << QString::fromUtf8(*response);
 
         if (Net::isApplicationError(m_request->error())) {
             emit finished(AccountTaskState::STATE_FAILED_HARD, tr("Session refresh failed: %1").arg(m_request->errorString()));
@@ -233,7 +233,7 @@ void YggdrasilRefreshStep::onRequestDone()
     }
 
     QJsonParseError parseError;
-    QJsonDocument doc = QJsonDocument::fromJson(*m_response, &parseError);
+    QJsonDocument doc = QJsonDocument::fromJson(*response, &parseError);
     if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
         emit finished(AccountTaskState::STATE_FAILED_SOFT, tr("Session refresh response could not be parsed"));
         return;
@@ -299,26 +299,26 @@ void YggdrasilProfileStep::perform()
         return;
     }
 
-    m_response.reset(new QByteArray());
-    m_request = Net::Download::makeByteArray(url, m_response.get());
+    auto [request, response] = Net::Download::makeByteArray(url);
+    m_request = request;
 
     m_task.reset(new NetJob("YggdrasilProfileStep", APPLICATION->network()));
     m_task->setAskRetry(false);
     m_task->addNetAction(m_request);
 
-    connect(m_task.get(), &Task::finished, this, &YggdrasilProfileStep::onRequestDone);
+    connect(m_task.get(), &Task::finished, this, [this, response] { onRequestDone(response); });
 
     m_task->start();
 }
 
-void YggdrasilProfileStep::onRequestDone()
+void YggdrasilProfileStep::onRequestDone(QByteArray* response)
 {
     if (m_request->error() != QNetworkReply::NoError) {
         qWarning() << "Error getting Yggdrasil profile:";
         qWarning() << " HTTP Status       :" << m_request->replyStatusCode();
         qWarning() << " Internal error no.:" << m_request->error();
         qWarning() << " Error string      :" << m_request->errorString();
-        qWarning() << " Response          :" << QString::fromUtf8(*m_response);
+        qWarning() << " Response          :" << QString::fromUtf8(*response);
 
         if (Net::isApplicationError(m_request->error())) {
             emit finished(AccountTaskState::STATE_FAILED_SOFT, tr("Minecraft profile fetch failed: %1").arg(m_request->errorString()));
@@ -329,7 +329,7 @@ void YggdrasilProfileStep::onRequestDone()
     }
 
     MinecraftProfile profile = m_data->minecraftProfile;
-    if (!Parsers::parseMinecraftProfileMojang(*m_response, profile)) {
+    if (!Parsers::parseMinecraftProfileMojang(*response, profile)) {
         emit finished(AccountTaskState::STATE_FAILED_SOFT, tr("Minecraft profile response could not be parsed"));
         return;
     }

@@ -62,18 +62,18 @@ void CloudflaredUpdateTask::executeTask()
 {
     setStatus(tr("Checking cloudflared updates"));
 
-    m_response.reset(new QByteArray());
-    m_request = Net::ApiDownload::makeByteArray(QUrl(kCloudflaredLatestUrl), m_response.get());
+    auto [request, response] = Net::ApiDownload::makeByteArray(QUrl(kCloudflaredLatestUrl));
+    m_request = request;
 
     m_job.reset(new NetJob("CloudflaredMetadata", m_network));
     m_job->setAskRetry(false);
     m_job->addNetAction(m_request);
 
-    connect(m_job.get(), &Task::finished, this, &CloudflaredUpdateTask::onMetadataDone);
+    connect(m_job.get(), &Task::finished, this, [this, response] { onMetadataDone(response); });
     m_job->start();
 }
 
-void CloudflaredUpdateTask::onMetadataDone()
+void CloudflaredUpdateTask::onMetadataDone(QByteArray* response)
 {
     if (m_request->error() != QNetworkReply::NoError) {
         auto message = tr("Failed to query cloudflared releases: %1").arg(m_request->errorString());
@@ -83,7 +83,7 @@ void CloudflaredUpdateTask::onMetadataDone()
     }
 
     QJsonParseError parseError;
-    QJsonDocument doc = QJsonDocument::fromJson(*m_response, &parseError);
+    QJsonDocument doc = QJsonDocument::fromJson(*response, &parseError);
     if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
         setLastChecked();
         emitFailed(tr("Cloudflared metadata could not be parsed"));

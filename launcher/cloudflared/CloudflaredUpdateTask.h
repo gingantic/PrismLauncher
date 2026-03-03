@@ -22,7 +22,7 @@ class CloudflaredUpdateTask : public Task {
     void executeTask() override;
 
    private slots:
-    void onMetadataDone();
+    void onMetadataDone(QByteArray* response);
     void onDownloadDone();
 
    private:
@@ -34,7 +34,6 @@ class CloudflaredUpdateTask : public Task {
 
     NetJob::Ptr m_job;
     Net::Download::Ptr m_request;
-    std::unique_ptr<QByteArray> m_response;
 
     QString m_latestTag;
     QString m_assetName;
