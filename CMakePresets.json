@@ -107,7 +107,7 @@
                 "lhs": "${hostSystemName}",
                 "rhs": "Darwin"
             },
-      "configurePreset": "macos"
+            "configurePreset": "macos"
         },
         {
             "name": "macos_universal",
@@ -143,7 +143,8 @@
             "name": "base",
             "hidden": true,
             "output": {
-                "outputOnFailure": true
+                "outputOnFailure": true,
+                "verbosity": "extra"
             },
             "execution": {
                 "noTestsAction": "error"
@@ -154,11 +155,11 @@
                 }
             }
         },
-      {
-          "name": "linux",
+        {
+            "name": "linux",
             "displayName": "Linux",
             "inherits": [
-              "base"
+                "base"
             ],
             "condition": {
                 "type": "equals",
@@ -167,11 +168,11 @@
             },
             "configurePreset": "linux"
         },
-      {
-          "name": "macos",
+        {
+            "name": "macos",
             "displayName": "macOS",
             "inherits": [
-              "base"
+                "base"
             ],
             "condition": {
                 "type": "equals",
@@ -180,11 +181,11 @@
             },
             "configurePreset": "macos"
         },
-      {
-          "name": "macos_universal",
+        {
+            "name": "macos_universal",
             "displayName": "macOS (Universal Binary)",
             "inherits": [
-              "base"
+                "base"
             ],
             "condition": {
                 "type": "equals",
@@ -193,11 +194,11 @@
             },
             "configurePreset": "macos_universal"
         },
-      {
-          "name": "windows_mingw",
+        {
+            "name": "windows_mingw",
             "displayName": "Windows (MinGW)",
             "inherits": [
-              "base"
+                "base"
             ],
             "condition": {
                 "type": "equals",
@@ -206,11 +207,11 @@
             },
             "configurePreset": "windows_mingw"
         },
-      {
-          "name": "windows_msvc",
+        {
+            "name": "windows_msvc",
             "displayName": "Windows (MSVC)",
             "inherits": [
-              "base"
+                "base"
             ],
             "condition": {
                 "type": "equals",
