@@ -63,10 +63,10 @@ void YggdrasilLoginDialog::startLogin()
     }
 
     m_account = MinecraftAccount::createBlankYggdrasil();
-    auto data = m_account->accountData();
-    data->yggdrasilServerUrl = serverUrl.toString();
-    data->yggdrasilUserName = username;
-    data->yggdrasilPassword = password;
+    auto accountData = m_account->accountData();
+    accountData->yggdrasilServerUrl = serverUrl.toString();
+    accountData->yggdrasilUserName = username;
+    accountData->yggdrasilPassword = password;
 
     auto task = m_account->login();
     ProgressDialog progDialog(this);
