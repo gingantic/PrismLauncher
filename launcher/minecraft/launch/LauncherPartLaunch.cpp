@@ -113,8 +113,8 @@ void LauncherPartLaunch::executeTask()
             emit logLine(tr("Authlib-injector is configured but missing its JAR path or server URL."), MessageLevel::Warning);
         }
     }
-    QString allArgs = args.join(", ");
-    emit logLine("Java Arguments:\n[" + m_parent->censorPrivateInfo(allArgs) + "]\n\n", MessageLevel::Launcher);
+    QString allArgs = args.join(" ");
+    emit logLine("Java arguments:\n  " + m_parent->censorPrivateInfo(allArgs) + "\n", MessageLevel::Launcher);
 
     auto javaPath = FS::ResolveExecutable(instance->settings()->get("JavaPath").toString());
 

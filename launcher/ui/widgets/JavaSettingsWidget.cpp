@@ -42,11 +42,12 @@
 #include "Application.h"
 #include "BuildConfig.h"
 #include "FileSystem.h"
+#include "HardwareInfo.h"
 #include "JavaCommon.h"
+#include "SysInfo.h"
 #include "java/JavaInstallList.h"
 #include "java/JavaUtils.h"
 #include "settings/Setting.h"
-#include "SysInfo.h"
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/VersionSelectDialog.h"
 #include "ui/java/InstallJavaDialog.h"
@@ -150,6 +151,7 @@ void JavaSettingsWidget::loadSettings()
         m_ui->maxMemSpinBox->setValue(min);
     }
     m_ui->permGenSpinBox->setValue(settings->get("PermGen").toInt());
+    m_ui->lowMemWarningCheckBox->setChecked(settings->get("LowMemWarning").toBool());
 
     // Java arguments
     m_ui->javaArgumentsGroupBox->setChecked(m_instance == nullptr || settings->get("OverrideJavaArgs").toBool());
@@ -204,10 +206,12 @@ void JavaSettingsWidget::saveSettings()
             settings->set("MaxMemAlloc", min);
         }
         settings->set("PermGen", m_ui->permGenSpinBox->value());
+        settings->set("LowMemWarning", m_ui->lowMemWarningCheckBox->isChecked());
     } else {
         settings->reset("MinMemAlloc");
         settings->reset("MaxMemAlloc");
         settings->reset("PermGen");
+        settings->reset("LowMemWarning");
     }
 
     // Java arguments
@@ -285,7 +289,7 @@ void JavaSettingsWidget::onJavaAutodetect()
 }
 void JavaSettingsWidget::updateThresholds()
 {
-    auto sysMiB = SysInfo::getSystemRamMiB();
+    auto sysMiB = HardwareInfo::totalRamMiB();
     unsigned int maxMem = m_ui->maxMemSpinBox->value();
     unsigned int minMem = m_ui->minMemSpinBox->value();
 
