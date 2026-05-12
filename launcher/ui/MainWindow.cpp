@@ -94,6 +94,7 @@
 #include "ui/GuiUtil.h"
 #include "ui/ViewLogWindow.h"
 #include "ui/dialogs/AboutDialog.h"
+#include "ui/dialogs/CloudflaredDialog.h"
 #include "ui/dialogs/CopyInstanceDialog.h"
 #include "ui/dialogs/CreateShortcutDialog.h"
 #include "ui/dialogs/CustomMessageBox.h"
@@ -1351,6 +1352,12 @@ void MainWindow::on_actionEditInstance_triggered()
 void MainWindow::on_actionManageAccounts_triggered()
 {
     APPLICATION->ShowGlobalSettings(this, "accounts");
+}
+
+void MainWindow::on_actionCloudflaredTunnels_triggered()
+{
+    CloudflaredDialog dlg(this);
+    dlg.exec();
 }
 
 void MainWindow::on_actionReportBug_triggered()

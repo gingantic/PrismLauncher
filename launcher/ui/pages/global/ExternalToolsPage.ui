@@ -237,6 +237,16 @@
             </widget>
            </item>
            <item>
+            <widget class="QPushButton" name="cloudflaredManageTunnelsBtn">
+             <property name="text">
+              <string>Manage Tunnels…</string>
+             </property>
+             <property name="toolTip">
+              <string>Open the Cloudflare tunnel manager to expose or connect to Minecraft servers.</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <spacer name="cloudflaredSpacer">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>

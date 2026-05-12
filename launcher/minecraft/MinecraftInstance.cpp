@@ -309,14 +309,9 @@ void MinecraftInstance::populateLaunchMenu(QMenu* menu)
     normalLaunch->setShortcut(QKeySequence::Open);
     QAction* normalLaunchOffline = menu->addAction(tr("Launch &Offline"));
     normalLaunchOffline->setShortcut(QKeySequence(tr("Ctrl+Shift+O")));
-    QAction* normalLaunchDemo = menu->addAction(tr("Launch &Demo"));
-    normalLaunchDemo->setShortcut(QKeySequence(tr("Ctrl+Alt+O")));
-
-    normalLaunchDemo->setEnabled(supportsDemo());
 
     connect(normalLaunch, &QAction::triggered, [this] { APPLICATION->launch(this); });
     connect(normalLaunchOffline, &QAction::triggered, [this] { APPLICATION->launch(this, LaunchMode::Offline); });
-    connect(normalLaunchDemo, &QAction::triggered, [this] { APPLICATION->launch(this, LaunchMode::Demo); });
 
     QString profilersTitle = tr("Profilers");
     menu->addSeparator()->setText(profilersTitle);
@@ -372,14 +367,6 @@ QString MinecraftInstance::getLocalLibraryPath() const
 {
     QDir libraries_dir(FS::PathCombine(instanceRoot(), "libraries/"));
     return libraries_dir.absolutePath();
-}
-
-bool MinecraftInstance::supportsDemo() const
-{
-    Version instance_ver{ getPackProfile()->getComponentVersion("net.minecraft") };
-    // Demo mode was introduced in 1.3.1: https://minecraft.wiki/w/Demo_mode#History
-    // FIXME: Due to Version constraints atm, this can't handle well non-release versions
-    return instance_ver >= Version("1.3.1");
 }
 
 QString MinecraftInstance::jarModsDir() const
@@ -776,10 +763,6 @@ QStringList MinecraftInstance::processMinecraftArgs(AuthSessionPtr session, Mine
         tokenMapping["auth_uuid"] = session->uuid;
         tokenMapping["user_properties"] = session->serializeUserProperties();
         tokenMapping["user_type"] = session->user_type;
-
-        if (session->launchMode == LaunchMode::Demo) {
-            args << "--demo";
-        }
     }
 
     for (int i = 0; i < args.length(); i++) {

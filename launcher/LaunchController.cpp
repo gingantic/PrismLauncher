@@ -129,8 +129,13 @@ void LaunchController::decideAccount()
 
 LaunchDecision LaunchController::decideLaunchMode()
 {
-    if (!m_accountToUse || m_wantedLaunchMode == LaunchMode::Demo) {
-        m_actualLaunchMode = LaunchMode::Demo;
+    if (!m_accountToUse) {
+        m_launchAbortMessage = tr("No account was selected for launch.");
+        return LaunchDecision::Abort;
+    }
+
+    if (m_accountToUse->accountType() == AccountType::Offline) {
+        m_actualLaunchMode = LaunchMode::Offline;
         return LaunchDecision::Continue;
     }
 
@@ -145,8 +150,8 @@ LaunchDecision LaunchController::decideLaunchMode()
     const auto* accounts = APPLICATION->accounts();
     MinecraftAccountPtr accountToCheck = nullptr;
 
-    if (m_accountToUse->accountType() != AccountType::Offline) {
-        accountToCheck = m_accountToUse->ownsMinecraft() ? m_accountToUse : nullptr;
+    if (m_accountToUse->ownsMinecraft()) {
+        accountToCheck = m_accountToUse;
     } else if (const auto defaultAccount = accounts->defaultAccount(); defaultAccount && defaultAccount->ownsMinecraft()) {
         accountToCheck = defaultAccount;
     } else {
@@ -159,8 +164,9 @@ LaunchDecision LaunchController::decideLaunchMode()
     }
 
     if (!accountToCheck) {
-        m_actualLaunchMode = LaunchMode::Demo;
-        return LaunchDecision::Continue;
+        m_launchAbortMessage =
+            tr("No account that owns Minecraft was found. Add a licensed account or use an offline account.");
+        return LaunchDecision::Abort;
     }
 
     auto state = accountToCheck->accountState();
@@ -214,24 +220,6 @@ LaunchDecision LaunchController::decideLaunchMode()
     return LaunchDecision::Abort;
 }
 
-bool LaunchController::askPlayDemo() const
-{
-    QMessageBox box(m_parentWidget);
-    box.setWindowTitle(tr("Play demo?"));
-    QString text = m_accountToUse
-                       ? tr("This account does not own Minecraft.\nYou need to purchase the game first to play the full version.")
-                       : tr("No account was selected for launch.");
-    text += tr("\n\nDo you want to play the demo?");
-    box.setText(text);
-    box.setIcon(QMessageBox::Warning);
-    const auto* demoButton = box.addButton(tr("Play Demo"), QMessageBox::ButtonRole::YesRole);
-    auto* cancelButton = box.addButton(tr("Cancel"), QMessageBox::ButtonRole::NoRole);
-    box.setDefaultButton(cancelButton);
-
-    box.exec();
-    return box.clickedButton() == demoButton;
-}
-
 QString LaunchController::askOfflineName(const QString& playerName, bool* ok) const
 {
     if (ok != nullptr) {
@@ -243,9 +231,6 @@ QString LaunchController::askOfflineName(const QString& playerName, bool* ok) co
         case LaunchMode::Normal:
             Q_ASSERT(false);
             return "";
-        case LaunchMode::Demo:
-            message = tr("Choose your demo mode player name");
-            break;
         case LaunchMode::Offline:
             if (m_wantedLaunchMode == LaunchMode::Normal) {
                 message = tr("You are not connected to the Internet, launching in offline mode\n\n");
@@ -275,6 +260,7 @@ QString LaunchController::askOfflineName(const QString& playerName, bool* ok) co
 
 void LaunchController::login()
 {
+    m_launchAbortMessage.clear();
     decideAccount();
 
     LaunchDecision decision = decideLaunchMode();
@@ -282,23 +268,11 @@ void LaunchController::login()
         decision = decideLaunchMode();
     }
     if (decision == LaunchDecision::Abort) {
-        emitAborted();
-        return;
-    }
-
-    if (m_actualLaunchMode == LaunchMode::Demo) {
-        if (m_wantedLaunchMode == LaunchMode::Demo || askPlayDemo()) {
-            bool ok = false;
-            auto name = askOfflineName("Player", &ok);
-            if (ok) {
-                m_session = std::make_shared<AuthSession>();
-                m_session->MakeDemo(name, MinecraftAccount::uuidFromUsername(name).toString(QUuid::Id128));
-                launchInstance();
-                return;
-            }
+        if (!m_launchAbortMessage.isEmpty()) {
+            emitFailed(m_launchAbortMessage);
+        } else {
+            emitAborted();
         }
-
-        emitFailed(tr("No account selected for launch"));
         return;
     }
 
@@ -415,7 +389,7 @@ void LaunchController::launchInstance()
 
         m_launcher->prependStep(makeShared<PrintServers>(m_launcher, servers));
     } else {
-        online_mode = m_actualLaunchMode == LaunchMode::Demo ? "demo" : "offline";
+        online_mode = "offline";
     }
 
     m_launcher->prependStep(makeShared<TextPrint>(m_launcher, "Launched instance in " + online_mode + " mode\n", MessageLevel::Launcher));

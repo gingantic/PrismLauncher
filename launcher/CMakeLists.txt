@@ -789,6 +789,10 @@ SET(LAUNCHER_SOURCES
     Application.cpp
     authlib/AuthlibInjectorUpdateTask.h
     authlib/AuthlibInjectorUpdateTask.cpp
+    cloudflared/CloudflaredBinding.h
+    cloudflared/CloudflaredBinding.cpp
+    cloudflared/CloudflaredManager.h
+    cloudflared/CloudflaredManager.cpp
     cloudflared/CloudflaredUpdateTask.h
     cloudflared/CloudflaredUpdateTask.cpp
     DataMigrationTask.h
@@ -1095,6 +1099,8 @@ SET(LAUNCHER_SOURCES
     ui/dialogs/InstallLoaderDialog.h
     ui/dialogs/ChooseOfflineNameDialog.cpp
     ui/dialogs/ChooseOfflineNameDialog.h
+    ui/dialogs/CloudflaredDialog.cpp
+    ui/dialogs/CloudflaredDialog.h
 
     ui/dialogs/skins/SkinManageDialog.cpp
     ui/dialogs/skins/SkinManageDialog.h
@@ -1266,6 +1272,7 @@ qt_wrap_ui(LAUNCHER_UI
     ui/dialogs/ChooseProviderDialog.ui
     ui/dialogs/skins/SkinManageDialog.ui
     ui/dialogs/ChooseOfflineNameDialog.ui
+    ui/dialogs/CloudflaredDialog.ui
 )
 
 qt_wrap_ui(PRISM_UPDATE_UI

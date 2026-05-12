@@ -128,6 +128,7 @@
     <addaction name="actionCreateInstanceShortcut"/>
     <addaction name="separator"/>
     <addaction name="actionSettings"/>
+    <addaction name="actionCloudflaredTunnels"/>
     <addaction name="actionCloseWindow"/>
    </widget>
    <widget class="QMenu" name="editMenu">
@@ -289,6 +290,14 @@
    </property>
    <property name="text">
     <string>&amp;Manage Accounts...</string>
+   </property>
+  </action>
+  <action name="actionCloudflaredTunnels">
+   <property name="text">
+    <string>Cloudflare &amp;Tunnels...</string>
+   </property>
+   <property name="toolTip">
+    <string>Manage cloudflared tunnel bindings to expose or connect to Minecraft servers.</string>
    </property>
   </action>
   <action name="actionLaunchInstance">

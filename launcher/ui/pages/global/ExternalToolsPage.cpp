@@ -49,6 +49,7 @@
 #include "cloudflared/CloudflaredUpdateTask.h"
 #include "settings/SettingsObject.h"
 #include "tools/BaseProfiler.h"
+#include "ui/dialogs/CloudflaredDialog.h"
 #include "ui/dialogs/ProgressDialog.h"
 
 ExternalToolsPage::ExternalToolsPage(QWidget* parent) : QWidget(parent), ui(new Ui::ExternalToolsPage)
@@ -284,6 +285,12 @@ void ExternalToolsPage::on_cloudflaredCheckBtn_clicked()
         }
         QMessageBox::warning(this, tr("Error"), reason);
     }
+}
+
+void ExternalToolsPage::on_cloudflaredManageTunnelsBtn_clicked()
+{
+    CloudflaredDialog dlg(this);
+    dlg.exec();
 }
 
 bool ExternalToolsPage::apply()

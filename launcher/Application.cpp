@@ -718,6 +718,7 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         m_settings->registerSetting("CloudflaredLatestTag", "");
         m_settings->registerSetting("CloudflaredBinaryPath", "");
         m_settings->registerSetting("CloudflaredLastChecked", "");
+        m_settings->registerSetting("CloudflaredBindings", "");
 
         // Language
         m_settings->registerSetting("Language", QString());

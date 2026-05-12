@@ -83,4 +83,5 @@ class ExternalToolsPage : public QWidget, public BasePage {
     void on_jsonEditorBrowseBtn_clicked();
     void on_authlibInjectorCheckBtn_clicked();
     void on_cloudflaredCheckBtn_clicked();
+    void on_cloudflaredManageTunnelsBtn_clicked();
 };

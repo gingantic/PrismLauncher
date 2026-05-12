@@ -21,5 +21,4 @@
 enum class LaunchMode {
     Normal,
     Offline,
-    Demo,
 };

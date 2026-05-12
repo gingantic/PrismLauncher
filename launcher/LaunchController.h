@@ -77,7 +77,6 @@ class LaunchController : public Task {
     void launchInstance();
     void decideAccount();
     LaunchDecision decideLaunchMode();
-    bool askPlayDemo() const;
     QString askOfflineName(const QString& playerName, bool* ok = nullptr) const;
     bool reauthenticateAccount(const MinecraftAccountPtr& account, const QString& reason);
 
@@ -91,6 +90,7 @@ class LaunchController : public Task {
    private:
     LaunchMode m_wantedLaunchMode = LaunchMode::Normal;
     LaunchMode m_actualLaunchMode = LaunchMode::Normal;
+    QString m_launchAbortMessage;
     BaseProfilerFactory* m_profiler = nullptr;
     QString m_offlineName;
     BaseInstance* m_instance = nullptr;

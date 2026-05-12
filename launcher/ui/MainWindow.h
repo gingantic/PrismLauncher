@@ -131,6 +131,8 @@ class MainWindow : public QMainWindow {
 
     void on_actionManageAccounts_triggered();
 
+    void on_actionCloudflaredTunnels_triggered();
+
     void on_actionReportBug_triggered();
 
     void on_actionClearMetadata_triggered();

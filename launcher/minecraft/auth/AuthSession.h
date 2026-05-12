@@ -9,7 +9,6 @@ class MinecraftAccount;
 
 struct AuthSession {
     bool MakeOffline(QString offline_playername);
-    void MakeDemo(QString name, QString uuid);
 
     QString serializeUserProperties();
 
