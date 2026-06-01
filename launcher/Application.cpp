@@ -78,6 +78,7 @@
 #include "ui/dialogs/CustomMessageBox.h"
 #include "authlib/AuthlibInjectorUpdateTask.h"
 #include "cloudflared/CloudflaredUpdateTask.h"
+#include "cloudflared/CloudflaredManager.h"
 
 #include "ui/pagedialog/PageDialog.h"
 
@@ -97,6 +98,7 @@
 #include <QIcon>
 #include <QLibraryInfo>
 #include <QList>
+#include <QMessageBox>
 #include <QNetworkAccessManager>
 #include <QStringList>
 #include <QStringLiteral>
@@ -1559,6 +1561,17 @@ bool Application::launch(BaseInstance* instance,
         }
         connect(controller.get(), &LaunchController::finished, this, &Application::controllerFinished);
         addRunningInstance();
+
+        // Auto-start cloudflared tunnels marked for instance launch
+        auto* cfManager = cloudflaredManager();
+        for (const auto& b : cfManager->bindings()) {
+            if (b.autoStart) {
+                const auto status = cfManager->statusOf(b.id);
+                if (status == CloudflaredManager::Status::Stopped || status == CloudflaredManager::Status::Error)
+                    cfManager->startBinding(b.id);
+            }
+        }
+
         QMetaObject::invokeMethod(controller.get(), &Task::start, Qt::QueuedConnection);
         return true;
     } else if (instance->isRunning()) {
@@ -1648,6 +1661,15 @@ void Application::controllerFinished()
     }
     extras.controller.reset();
     subRunningInstance();
+
+    // Stop autoStart cloudflared tunnels when no instances are running
+    if (m_runningInstances == 0) {
+        auto* cfManager = cloudflaredManager();
+        for (const auto& b : cfManager->bindings()) {
+            if (b.autoStart)
+                cfManager->stopBinding(b.id);
+        }
+    }
 
     // quit when there are no more windows.
     if (shouldExitNow()) {
@@ -1898,6 +1920,56 @@ void Application::checkCloudflaredUpdates(bool force)
     connect(m_cloudflaredUpdateTask.get(), &Task::succeeded, this, []() { qInfo() << "Cloudflared update finished."; });
     QMetaObject::invokeMethod(m_cloudflaredUpdateTask.get(), &Task::start, Qt::QueuedConnection);
 #endif
+}
+
+CloudflaredManager* Application::cloudflaredManager()
+{
+    if (!m_cloudflaredManager) {
+        m_cloudflaredManager = std::make_unique<CloudflaredManager>(m_settings.get(), this);
+
+        // Show an error dialog when an auto-start tunnel fails to start
+        connect(m_cloudflaredManager.get(), &CloudflaredManager::bindingStatusChanged, this,
+                [this](const QString& id, CloudflaredManager::Status status, const QString&) {
+                    if (status != CloudflaredManager::Status::Error)
+                        return;
+
+                    // Only alert for auto-start bindings (those triggered by instance launch)
+                    const auto& bindings = m_cloudflaredManager->bindings();
+                    const auto it = std::find_if(bindings.begin(), bindings.end(),
+                                                 [&id](const CloudflaredBinding& b) { return b.id == id; });
+                    if (it == bindings.end() || !it->autoStart)
+                        return;
+
+                    const QString name = it->name;
+                    const int port = it->localPort;
+                    const bool isAccess = (it->type == CloudflaredBinding::Type::Access);
+
+                    QString detail;
+                    if (m_cloudflaredManager->binaryPath().isEmpty()) {
+                        detail = tr("The cloudflared binary was not found.\n"
+                                    "Please configure its path in Settings → External Tools.");
+                    } else if (isAccess) {
+                        detail = tr("Port %1 may already be in use by another application.\n"
+                                    "Check the Cloudflare Tunnels dialog for details.")
+                                    .arg(port);
+                    } else {
+                        detail = tr("The cloudflared process failed to start.\n"
+                                    "Check the Cloudflare Tunnels dialog for details.");
+                    }
+
+                    QMessageBox* box = new QMessageBox(
+                        QMessageBox::Warning,
+                        tr("Cloudflare Tunnel Error"),
+                        tr("Tunnel \"<b>%1</b>\" failed to start.\n\n%2").arg(name.toHtmlEscaped(), detail),
+                        QMessageBox::Ok,
+                        m_mainWindow);
+                    box->setAttribute(Qt::WA_DeleteOnClose);
+                    box->setTextFormat(Qt::RichText);
+                    box->open();  // non-blocking
+                },
+                Qt::QueuedConnection);
+    }
+    return m_cloudflaredManager.get();
 }
 
 void Application::updateCapabilities()

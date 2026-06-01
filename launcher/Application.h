@@ -76,6 +76,7 @@ class ThemeManager;
 class IconTheme;
 class AuthlibInjectorUpdateTask;
 class CloudflaredUpdateTask;
+class CloudflaredManager;
 class BaseInstance;
 
 class LogModel;
@@ -159,6 +160,8 @@ class Application : public QApplication {
 
     void checkAuthlibInjectorUpdates(bool force);
     void checkCloudflaredUpdates(bool force);
+
+    CloudflaredManager* cloudflaredManager();
 
     void detectLibraries();
 
@@ -278,6 +281,7 @@ class Application : public QApplication {
 
     shared_qobject_ptr<AuthlibInjectorUpdateTask> m_authlibInjectorUpdateTask;
     shared_qobject_ptr<CloudflaredUpdateTask> m_cloudflaredUpdateTask;
+    std::unique_ptr<CloudflaredManager> m_cloudflaredManager;
     Status m_status = Application::StartingUp;
     Capabilities m_capabilities;
     bool m_portable = false;

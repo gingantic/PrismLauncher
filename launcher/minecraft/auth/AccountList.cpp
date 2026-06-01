@@ -604,7 +604,9 @@ void AccountList::setListFilePath(QString path, bool autosave)
 bool AccountList::anyAccountIsValid()
 {
     for (auto account : m_accounts) {
-        if (account->ownsMinecraft()) {
+        // Offline accounts are always considered valid since they don't go through
+        // Mojang's entitlement check (ownsMinecraft() always returns false for them).
+        if (account->accountType() == AccountType::Offline || account->ownsMinecraft()) {
             return true;
         }
     }

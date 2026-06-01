@@ -54,7 +54,7 @@ CloudflaredDialog::CloudflaredDialog(QWidget* parent)
 {
     ui->setupUi(this);
 
-    m_manager = new CloudflaredManager(APPLICATION->settings(), this);
+    m_manager = APPLICATION->cloudflaredManager();
 
     connect(m_manager, &CloudflaredManager::bindingsChanged, this, &CloudflaredDialog::onBindingsChanged);
     connect(m_manager, &CloudflaredManager::bindingStatusChanged, this,
@@ -72,16 +72,12 @@ CloudflaredDialog::CloudflaredDialog(QWidget* parent)
     ui->bindingTable->verticalHeader()->setVisible(false);
 
     refreshTable();
-
-    // Auto-start bindings that have autoStart enabled
-    for (const auto& b : m_manager->bindings()) {
-        if (b.autoStart)
-            m_manager->startBinding(b.id);
-    }
 }
 
 CloudflaredDialog::~CloudflaredDialog()
 {
+    // Disconnect our slots from the shared manager so stale UI callbacks don't fire
+    disconnect(m_manager, nullptr, this, nullptr);
     delete ui;
 }
 
@@ -229,7 +225,7 @@ bool CloudflaredDialog::showBindingEditor(CloudflaredBinding& binding, bool isNe
     portSpin->setValue(binding.localPort);
     form->addRow(tr("Local Port:"), portSpin);
 
-    auto* autoStartCheck = new QCheckBox(tr("Start automatically when dialog opens"), &dlg);
+    auto* autoStartCheck = new QCheckBox(tr("Start automatically when an instance launches"), &dlg);
     autoStartCheck->setChecked(binding.autoStart);
     layout->addWidget(autoStartCheck);
 

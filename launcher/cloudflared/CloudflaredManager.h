@@ -34,6 +34,8 @@ class CloudflaredManager : public QObject {
 
     void saveBindings();
 
+    QString binaryPath() const;
+
    signals:
     void bindingsChanged();
     void bindingStatusChanged(const QString& id, CloudflaredManager::Status status, const QString& tunnelUrl);
@@ -41,7 +43,6 @@ class CloudflaredManager : public QObject {
 
    private:
     void loadBindings();
-    QString binaryPath() const;
     int bindingIndex(const QString& id) const;
 
     SettingsObject* m_settings;

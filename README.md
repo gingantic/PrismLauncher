@@ -11,6 +11,12 @@
   <br />This is a <b>fork</b> of the MultiMC Launcher and is <b>not</b> endorsed by it.
 </p>
 
+## Key Features
+
+* **☁️ Integrated Cloudflare Tunnels**: Automatically starts configured tunnels when an instance is launched and stops them when done, featuring global manager reliability and error warnings.
+* **🔌 Offline Launch Validation**: Correctly validates offline accounts during launch, letting you start instances instantly without entitlement checks blocking play.
+
+
 ## Installation
 
 <a href="https://repology.org/project/prismlauncher/versions">
