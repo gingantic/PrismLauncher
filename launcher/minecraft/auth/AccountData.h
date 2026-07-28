@@ -41,6 +41,7 @@
 
 #include <QDateTime>
 #include <QMap>
+#include <QNetworkReply>
 #include <QVariantMap>
 
 enum class Validity { None, Assumed, Certain };
@@ -120,6 +121,7 @@ struct AccountData {
     // runtime only information (not saved with the account)
     QString internalId;
     QString errorString;
+    QNetworkReply::NetworkError networkError = QNetworkReply::NoError;
     AccountState accountState = AccountState::Unchecked;
 
     QString yggdrasilUserName;

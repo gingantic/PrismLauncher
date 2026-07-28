@@ -37,7 +37,7 @@ static Version mcVersion(BaseInstance* inst)
 
 static ModPlatform::ModLoaderTypes mcLoaders(BaseInstance* inst)
 {
-    return static_cast<MinecraftInstance*>(inst)->getPackProfile()->getSupportedModLoaders().value();
+    return static_cast<MinecraftInstance*>(inst)->getPackProfile()->getSupportedModLoaders().value_or(ModPlatform::ModLoaderTypes(0));
 }
 
 static bool checkDependencies(std::shared_ptr<GetModDependenciesTask::PackDependency> sel,
@@ -263,7 +263,8 @@ auto GetModDependenciesTask::getExtraInfo() -> QHash<QString, PackDependencyExtr
         auto addonId = mod->pack->addonId;
         auto provider = mod->pack->provider;
         auto version = mod->version.fileId;
-        auto req = QStringList();
+        auto reqNames = QStringList();
+        auto reqIds = QStringList();
         for (auto& smod : fullList) {
             if (provider != smod->pack->provider)
                 continue;
@@ -276,10 +277,11 @@ auto GetModDependenciesTask::getExtraInfo() -> QHash<QString, PackDependencyExtr
                                                         : d.addonId == addonId);
                                         });
                 dep != deps.end()) {
-                req.append(smod->pack->name);
+                reqNames.append(smod->pack->name);
+                reqIds.append(smod->version.fileId.toString());
             }
         }
-        rby[addonId.toString()] = { maybeInstalled(mod), req };
+        rby[addonId.toString()] = { maybeInstalled(mod), reqNames, reqIds };
     }
     return rby;
 }

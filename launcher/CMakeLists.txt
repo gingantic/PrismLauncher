@@ -39,6 +39,7 @@ set(CORE_SOURCES
     QVariantUtils.h
     RuntimeContext.h
     PSaveFile.h
+    EnumWrapper.h
 
     # Basic instance manipulation tasks (derived from InstanceTask)
     InstanceCreationTask.h
@@ -316,6 +317,8 @@ set(MINECRAFT_SOURCES
     minecraft/World.cpp
     minecraft/WorldList.h
     minecraft/WorldList.cpp
+    minecraft/WorldTasks.h
+    minecraft/WorldTasks.cpp
 
     minecraft/mod/MetadataHandler.h
     minecraft/mod/Mod.h
