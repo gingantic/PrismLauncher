@@ -9,7 +9,7 @@
 
 #include "Application.h"
 #include "FileSystem.h"
-#include "net/ApiDownload.h"
+#include "net/ApiRequest.h"
 #include "net/NetUtils.h"
 #include "settings/SettingsObject.h"
 
@@ -49,7 +49,7 @@ void AuthlibInjectorUpdateTask::executeTask()
 {
     setStatus(tr("Checking authlib-injector updates"));
 
-    auto [request, response] = Net::ApiDownload::makeByteArray(QUrl(kAuthlibInjectorLatestUrl));
+    auto [request, response] = Net::ApiRequest::makeByteArray(QUrl(kAuthlibInjectorLatestUrl));
     m_request = request;
 
     m_job.reset(new NetJob("AuthlibInjectorMetadata", m_network));
@@ -113,7 +113,7 @@ void AuthlibInjectorUpdateTask::onMetadataDone(QByteArray* response)
 
     setStatus(tr("Downloading authlib-injector"));
 
-    m_request = Net::ApiDownload::makeFile(m_assetUrl, m_targetPath);
+    m_request = Net::ApiRequest::makeFile(m_assetUrl, m_targetPath);
     m_job.reset(new NetJob("AuthlibInjectorDownload", m_network));
     m_job->setAskRetry(false);
     m_job->addNetAction(m_request);

@@ -4,8 +4,8 @@
 #include <QNetworkAccessManager>
 
 #include "QObjectPtr.h"
-#include "net/Download.h"
 #include "net/NetJob.h"
+#include "net/NetRequest.h"
 #include "tasks/Task.h"
 
 class SettingsObject;
@@ -33,7 +33,7 @@ class CloudflaredUpdateTask : public Task {
     QString m_dataRoot;
 
     NetJob::Ptr m_job;
-    Net::Download::Ptr m_request;
+    Net::NetRequest::Ptr m_request;
 
     QString m_latestTag;
     QString m_assetName;

@@ -9,7 +9,7 @@
 #include <QSysInfo>
 
 #include "FileSystem.h"
-#include "net/ApiDownload.h"
+#include "net/ApiRequest.h"
 #include "net/NetUtils.h"
 #include "settings/SettingsObject.h"
 
@@ -62,7 +62,7 @@ void CloudflaredUpdateTask::executeTask()
 {
     setStatus(tr("Checking cloudflared updates"));
 
-    auto [request, response] = Net::ApiDownload::makeByteArray(QUrl(kCloudflaredLatestUrl));
+    auto [request, response] = Net::ApiRequest::makeByteArray(QUrl(kCloudflaredLatestUrl));
     m_request = request;
 
     m_job.reset(new NetJob("CloudflaredMetadata", m_network));
@@ -126,7 +126,7 @@ void CloudflaredUpdateTask::onMetadataDone(QByteArray* response)
 
     setStatus(tr("Downloading cloudflared"));
 
-    m_request = Net::ApiDownload::makeFile(m_assetUrl, m_targetPath);
+    m_request = Net::ApiRequest::makeFile(m_assetUrl, m_targetPath);
     m_job.reset(new NetJob("CloudflaredDownload", m_network));
     m_job->setAskRetry(false);
     m_job->addNetAction(m_request);
