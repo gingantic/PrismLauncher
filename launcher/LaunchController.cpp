@@ -136,7 +136,9 @@ LaunchDecision LaunchController::decideLaunchMode()
     }
 
     if (m_accountToUse->accountType() == AccountType::Offline) {
-        m_actualLaunchMode = LaunchMode::Offline;
+        // Offline accounts don't need authentication, but the network is still available for
+        // downloading metadata and game files unless the user explicitly requested offline mode.
+        m_actualLaunchMode = m_wantedLaunchMode;
         return LaunchDecision::Continue;
     }
 
@@ -387,10 +389,13 @@ void LaunchController::launchInstance()
     if (m_actualLaunchMode == LaunchMode::Normal) {
         online_mode = "online";
 
-        // Prepend Server Status
-        const QStringList servers = { "login.microsoftonline.com", "session.minecraft.net", "textures.minecraft.net", "api.mojang.com" };
+        if (m_accountToUse->accountType() != AccountType::Offline) {
+            // Prepend Server Status
+            const QStringList servers = { "login.microsoftonline.com", "session.minecraft.net", "textures.minecraft.net",
+                                          "api.mojang.com" };
 
-        m_launcher->prependStep(makeShared<PrintServers>(m_launcher, servers));
+            m_launcher->prependStep(makeShared<PrintServers>(m_launcher, servers));
+        }
     } else {
         online_mode = "offline";
     }
