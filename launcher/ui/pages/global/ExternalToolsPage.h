@@ -39,6 +39,8 @@
 
 #include "ui/pages/BasePage.h"
 
+class QTreeWidgetItem;
+
 namespace Ui {
 class ExternalToolsPage;
 }
@@ -48,7 +50,7 @@ class ExternalToolsPage : public QWidget, public BasePage {
 
    public:
     explicit ExternalToolsPage(QWidget* parent = 0);
-    ~ExternalToolsPage();
+    ~ExternalToolsPage() override;
 
     QString displayName() const override { return tr("Tools"); }
     QIcon icon() const override
@@ -61,7 +63,7 @@ class ExternalToolsPage : public QWidget, public BasePage {
     }
     QString id() const override { return "external-tools"; }
     QString helpPage() const override { return "Tools"; }
-    virtual bool apply() override;
+    bool apply() override;
     void retranslate() override;
 
    private:
@@ -69,19 +71,20 @@ class ExternalToolsPage : public QWidget, public BasePage {
     void applySettings();
     void updateAuthlibInjectorStatus();
     void updateCloudflaredStatus();
+    void setupWorldToolBrowseBtn(QTreeWidgetItem* item);
 
    private:
-    Ui::ExternalToolsPage* ui;
+    Ui::ExternalToolsPage* m_ui;
 
    private slots:
     void on_jprofilerPathBtn_clicked();
     void on_jprofilerCheckBtn_clicked();
     void on_jvisualvmPathBtn_clicked();
     void on_jvisualvmCheckBtn_clicked();
-    void on_mceditPathBtn_clicked();
-    void on_mceditCheckBtn_clicked();
     void on_jsonEditorBrowseBtn_clicked();
     void on_authlibInjectorCheckBtn_clicked();
     void on_cloudflaredCheckBtn_clicked();
     void on_cloudflaredManageTunnelsBtn_clicked();
+    void on_worldToolAddBtn_clicked();
+    void on_worldToolRemoveBtn_clicked();
 };

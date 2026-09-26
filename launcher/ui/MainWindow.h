@@ -60,7 +60,6 @@ class InstanceView;
 class KonamiCode;
 class InstanceTask;
 class LabeledToolButton;
-class Setting;
 
 namespace Ui {
 class MainWindow;
@@ -239,8 +238,6 @@ class MainWindow : public QMainWindow {
     LabeledToolButton* renameButton = nullptr;
     QToolButton* helpMenuButton = nullptr;
     KonamiCode* secretEventFilter = nullptr;
-
-    std::shared_ptr<Setting> instanceToolbarSetting = nullptr;
 
     MinecraftInstance* m_selectedInstance = nullptr;
     QString m_currentInstIcon;

@@ -5,7 +5,7 @@
 
 #include "QObjectPtr.h"
 #include "net/NetJob.h"
-#include "net/NetRequest.h"
+#include "net/Request.h"
 #include "tasks/Task.h"
 
 class SettingsObject;
@@ -33,7 +33,7 @@ class AuthlibInjectorUpdateTask : public Task {
     QString m_dataRoot;
 
     NetJob::Ptr m_job;
-    Net::NetRequest::Ptr m_request;
+    Net::Request::Ptr m_request;
 
     QString m_latestTag;
     QString m_assetName;

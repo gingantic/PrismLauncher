@@ -78,7 +78,7 @@ void YggdrasilLoginStep::perform()
         { "Accept", "application/json" },
     };
 
-    auto [requestPtr, response] = Net::NetRequest::makeByteArray(url, QJsonDocument(request).toJson(QJsonDocument::Compact));
+    auto [requestPtr, response] = Net::Request::makeByteArray(url, QJsonDocument(request).toJson(QJsonDocument::Compact));
     m_request = requestPtr;
     m_request->addHeaderProxy(std::make_unique<Net::RawHeaderProxy>(headers));
 
@@ -202,7 +202,7 @@ void YggdrasilRefreshStep::perform()
         { "Accept", "application/json" },
     };
 
-    auto [requestPtr, response] = Net::NetRequest::makeByteArray(url, QJsonDocument(request).toJson(QJsonDocument::Compact));
+    auto [requestPtr, response] = Net::Request::makeByteArray(url, QJsonDocument(request).toJson(QJsonDocument::Compact));
     m_request = requestPtr;
     m_request->addHeaderProxy(std::make_unique<Net::RawHeaderProxy>(headers));
 
@@ -299,7 +299,7 @@ void YggdrasilProfileStep::perform()
         return;
     }
 
-    auto [request, response] = Net::NetRequest::makeByteArray(url);
+    auto [request, response] = Net::Request::makeByteArray(url);
     m_request = request;
 
     m_task.reset(new NetJob("YggdrasilProfileStep", APPLICATION->network()));

@@ -5,7 +5,7 @@
 
 #include "minecraft/auth/AuthStep.h"
 #include "net/NetJob.h"
-#include "net/NetRequest.h"
+#include "net/Request.h"
 
 class YggdrasilLoginStep : public AuthStep {
     Q_OBJECT
@@ -21,7 +21,7 @@ class YggdrasilLoginStep : public AuthStep {
     void onRequestDone(QByteArray* response);
 
    private:
-    Net::NetRequest::Ptr m_request;
+    Net::Request::Ptr m_request;
     NetJob::Ptr m_task;
 };
 
@@ -39,7 +39,7 @@ class YggdrasilRefreshStep : public AuthStep {
     void onRequestDone(QByteArray* response);
 
    private:
-    Net::NetRequest::Ptr m_request;
+    Net::Request::Ptr m_request;
     NetJob::Ptr m_task;
 };
 
@@ -57,6 +57,6 @@ class YggdrasilProfileStep : public AuthStep {
     void onRequestDone(QByteArray* response);
 
    private:
-    Net::NetRequest::Ptr m_request;
+    Net::Request::Ptr m_request;
     NetJob::Ptr m_task;
 };
