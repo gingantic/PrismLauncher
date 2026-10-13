@@ -195,7 +195,9 @@ void FlameCreationTask::executeTask()
                 }
             }
 
-            filesIterator++;
+            if (filesIterator != files.end()) {
+                filesIterator++;
+            }
         }
 
         const QDir oldMinecraftDir(inst->gameRoot());
@@ -392,7 +394,13 @@ void FlameCreationTask::createInstance()
     FS::move(indexPath, newIndexPlace);
 
     if (!m_pack.overrides.isEmpty()) {
-        QString overridePath = FS::PathCombine(m_stagingPath, m_pack.overrides);
+        const auto overridePath = FS::PathCombine(m_stagingPath, m_pack.overrides);
+        if (!QUrl::fromLocalFile(m_stagingPath).isParentOf(QUrl::fromLocalFile(overridePath))) {
+            // This means we somehow got out of the root folder, so abort here to prevent exploits
+            emitFailed(tr("The overrides has a path that leads to an arbitrary location (%1). This is a security risk and isn't allowed.")
+                           .arg(m_pack.overrides));
+            return;
+        }
         if (QFile::exists(overridePath)) {
             // Create a list of overrides in "overrides.txt" inside flame/
             Override::createOverrides("overrides", parentFolder, overridePath);
@@ -620,11 +628,17 @@ void FlameCreationTask::setupDownloadJob()
         }
 
         relpath = FS::PathCombine(m_rootPath, relpath);
-        auto path = FS::PathCombine(m_stagingPath, relpath);
+        auto path = FS::getSafePathInRoot(m_stagingPath, relpath);
+        if (!path) {
+            emitFailed(tr("The modpack is trying to download a file outside of the instance folder (%1). This is a security risk and isn't "
+                          "allowed.")
+                           .arg(relpath));
+            return;
+        }
 
         if (!result.version.downloadUrl.isEmpty()) {
-            qDebug() << "Will download" << result.version.downloadUrl << "to" << path;
-            auto dl = Net::ApiRequest::makeFile(result.version.downloadUrl, path);
+            qDebug() << "Will download" << result.version.downloadUrl << "to" << *path;
+            auto dl = Net::ApiRequest::makeFile(result.version.downloadUrl, *path);
             m_filesJob->addNetAction(dl);
         }
     }

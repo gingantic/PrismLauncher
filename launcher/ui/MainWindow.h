@@ -40,8 +40,6 @@
 
 #pragma once
 
-#include <memory>
-
 #include <QMainWindow>
 #include <QProcess>
 #include <QTimer>
@@ -51,7 +49,6 @@
 class LaunchController;
 class QToolButton;
 class InstanceProxyModel;
-class LabeledToolButton;
 class QLabel;
 class MinecraftInstance;
 class MinecraftLauncher;
@@ -59,7 +56,6 @@ class BaseProfilerFactory;
 class InstanceView;
 class KonamiCode;
 class InstanceTask;
-class LabeledToolButton;
 
 namespace Ui {
 class MainWindow;
@@ -216,6 +212,10 @@ class MainWindow : public QMainWindow {
    private:
     void retranslateUi();
 
+    void updateNameLabel();
+
+    void updateInstanceToolBarOrientation(Qt::Orientation orientation);
+
     void addInstance(const QString& url = QString(), const QMap<QString, QString>& extra_info = {});
     void setCatBackground(bool enabled);
     void updateCatState();
@@ -234,8 +234,9 @@ class MainWindow : public QMainWindow {
     InstanceProxyModel* proxymodel = nullptr;
     QLabel* m_statusLeft = nullptr;
     QLabel* m_statusCenter = nullptr;
-    LabeledToolButton* changeIconButton = nullptr;
-    LabeledToolButton* renameButton = nullptr;
+    QToolButton* changeIconButton = nullptr;
+    QAction* instanceInfoWidget = nullptr;
+    QLabel* nameLabel = nullptr;
     QToolButton* helpMenuButton = nullptr;
     KonamiCode* secretEventFilter = nullptr;
 

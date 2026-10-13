@@ -49,6 +49,8 @@
 #include "Result.h"
 #include "modplatform/ModIndex.h"
 #include "modplatform/ResourceType.h"
+#include "net/NetJob.h"
+#include "net/RPCSink.h"
 #include "tasks/Task.h"
 
 /* Simple class with a common interface for interacting with APIs */
@@ -95,10 +97,6 @@ class ResourceAPI {
         bool includeChangelog{};
     };
 
-    struct ProjectInfoArgs {
-        ModPlatform::IndexedPack::Ptr pack;
-    };
-
     struct DependencySearchArgs {
         ModPlatform::Dependency dependency;
         Version mcVersion;
@@ -111,51 +109,34 @@ class ResourceAPI {
     virtual auto getSortingMethods() const -> QList<SortingMethod> = 0;
 
    public slots:
-    virtual Task::Ptr searchProjects(const SearchArgs&, const Callback<QList<ModPlatform::IndexedPack::Ptr>>&) const;
 
-    virtual std::pair<Task::Ptr, QByteArray*> getProject(const QString& addonId, bool askRetry = true) const;
     virtual std::pair<Task::Ptr, QByteArray*> getProjects(QStringList addonIds) const = 0;
 
-    virtual Task::Ptr getProjectInfo(const ProjectInfoArgs&, const Callback<ModPlatform::IndexedPack::Ptr>&, bool askRetry = true) const;
     Task::Ptr getProjectVersions(const VersionSearchArgs& args, const Callback<QVector<ModPlatform::IndexedVersion>>& callbacks) const;
     virtual Task::Ptr getDependencyVersion(const DependencySearchArgs&, const Callback<ModPlatform::IndexedVersion>&) const;
+
+   public slots:
+
+    virtual Net::RPC::Spec<ModPlatform::IndexedPack> getProject(const QString& id) const = 0;
+    virtual std::optional<Net::RPC::Spec<bool>> getProjectExtra(ModPlatform::IndexedPack& /*pack*/) const { return {}; }
+    virtual Net::RPC::Spec<QList<ModPlatform::IndexedPack>> searchProjects(const SearchArgs& args) const = 0;
+
+    // helpers to omit the netJob stuff
+    std::pair<NetJob::Ptr, ModPlatform::IndexedPack*> getProjectTask(const QString& addonId,
+                                                                     bool loadExtra = false,
+                                                                     bool askRetry = true) const;
+    std::pair<NetJob::Ptr, QList<ModPlatform::IndexedPack>*> searchProjectsTask(const SearchArgs& args) const;
 
    protected:
     ~ResourceAPI() = default;
 
     virtual QString debugName() const { return "External resource API"; }
 
-    static QString mapMCVersionToModrinth(const Version& v);
-
-    static QString getGameVersionsString(const std::vector<Version>& mcVersions);
-
    public:
-    virtual auto getSearchURL(const SearchArgs& args) const -> std::optional<QString> = 0;
-    virtual auto getInfoURL(const QString& id) const -> std::optional<QString> = 0;
     virtual auto getVersionsURL(const VersionSearchArgs& args) const -> std::optional<QString> = 0;
     virtual auto getDependencyURL(const DependencySearchArgs& args) const -> std::optional<QString> = 0;
 
-    /** Functions to load data into a pack.
-     *
-     *  Those are needed for the same reason as documentToArray, and NEED to be re-implemented in the same way.
-     */
-
-    virtual Result<> loadIndexedPack(ModPlatform::IndexedPack&, const QJsonObject&) const = 0;
     virtual Result<ModPlatform::IndexedVersion> loadIndexedPackVersion(QJsonObject& obj, ModPlatform::ResourceType) const = 0;
-
-    /** Converts a JSON document to a common array format.
-     *
-     *  This is needed so that different providers, with different JSON structures, can be parsed
-     *  uniformally. You NEED to re-implement this if you intend on using the default callbacks.
-     */
-    virtual QJsonArray documentToArray(QJsonDocument& obj) const = 0;
-
-    /** Functions to load data into a pack.
-     *
-     *  Those are needed for the same reason as documentToArray, and NEED to be re-implemented in the same way.
-     */
-
-    virtual Result<> loadExtraPackInfo(ModPlatform::IndexedPack&, QJsonObject&) const = 0;
 
     virtual std::pair<Task::Ptr, QByteArray*> getModCategories() const = 0;
 

@@ -31,6 +31,8 @@ ModDetails ReadMCModInfo(const QByteArray& contents)
             return {};
         }
         ModDetails details;
+        details.loader = ModPlatform::ModLoaderType::Forge;
+
         auto firstObj = arr.at(0).toObject();
         details.mod_id = firstObj.value("modid").toString();
         auto name = firstObj.value("name").toString();
@@ -130,12 +132,16 @@ ModDetails ReadMCModInfo(const QByteArray& contents)
 ModDetails ReadMCModTOML(const QByteArray& contents)
 {
     ModDetails details;
+    details.loader = ModPlatform::ModLoaderType::Forge;
 
     toml::table tomlData;
 #if TOML_EXCEPTIONS
+    // Catch std::exception instead of toml::parse_error to work around
+    // the latter not being caught here when compiled with libc++.
+    // See https://github.com/PrismLauncher/PrismLauncher/issues/6047.
     try {
         tomlData = toml::parse(contents.toStdString());
-    } catch ([[maybe_unused]] const toml::parse_error& err) {
+    } catch ([[maybe_unused]] const std::exception& err) {
         return {};
     }
 #else
@@ -283,6 +289,7 @@ ModDetails ReadFabricModInfo(const QByteArray& contents)
     auto schemaVersion = object.contains("schemaVersion") ? object.value("schemaVersion").toInt(0) : 0;
 
     ModDetails details;
+    details.loader = ModPlatform::ModLoaderType::Fabric;
 
     details.mod_id = object.value("id").toString();
     details.version = object.value("version").toString();
@@ -376,6 +383,7 @@ ModDetails ReadFabricModInfo(const QByteArray& contents)
 ModDetails ReadQuiltModInfo(const QByteArray& contents)
 {
     ModDetails details;
+    details.loader = ModPlatform::ModLoaderType::Quilt;
 
     auto parse = [&details, contents]() -> Result<> {
         TRY_INTO(const auto& object, Json::requireObject(contents, "quilt.mod.json"))
@@ -489,6 +497,7 @@ ModDetails ReadQuiltModInfo(const QByteArray& contents)
 ModDetails ReadForgeInfo(const QByteArray& contents)
 {
     ModDetails details;
+    details.loader = ModPlatform::ModLoaderType::Forge;
     // Read the data
     details.name = "Minecraft Forge";
     details.mod_id = "Forge";
@@ -509,6 +518,7 @@ ModDetails ReadForgeInfo(const QByteArray& contents)
 ModDetails ReadLiteModInfo(const QByteArray& contents)
 {
     ModDetails details;
+    details.loader = ModPlatform::ModLoaderType::LiteLoader;
     auto jsonDoc = Json::requireDocument(contents).value_or(QJsonDocument());
     auto object = jsonDoc.object();
     if (object.contains("name")) {
@@ -581,23 +591,26 @@ bool processZIP(Mod& mod, [[maybe_unused]] ProcessingLevel level)
     QByteArray nilData = {};
     QString nilFilePath = {};
 
-    if (!zip.parse([&details, &baseForgePopulated, &manifestVersion, &isValid, &nilData, &isNilMod, &nilFilePath](
-                       MMCZip::ArchiveReader::File* file, bool& stop) {
+    if (const auto result = zip.parse([&details, &baseForgePopulated, &manifestVersion, &isValid, &nilData, &isNilMod, &nilFilePath](
+                       MMCZip::ArchiveReader::File* file) -> Result<bool> {
             auto filePath = file->filename();
 
             if (filePath == "META-INF/mods.toml" || filePath == "META-INF/neoforge.mods.toml") {
-                details = ReadMCModTOML(file->readAll());
+                TRY_INTO(details, file->readAll().transform([](const auto& v) { return ReadMCModTOML(v); }))
+                if (filePath == "META-INF/neoforge.mods.toml") {
+                    details.loader = ModPlatform::ModLoaderType::NeoForge;
+                }
+
                 isValid = true;
                 if (details.version == "${file.jarVersion}" && !manifestVersion.isEmpty()) {
                     details.version = manifestVersion;
                 }
-                stop = details.version != "${file.jarVersion}";
                 baseForgePopulated = true;
-                return true;
+                return details.version != "${file.jarVersion}";
             }
             if (filePath == "META-INF/MANIFEST.MF") {
                 // quick and dirty line-by-line parser
-                auto manifestLines = QString(file->readAll()).split(s_newlineRegex);
+                TRY_INTO(auto manifestLines, file->readAll().transform([](const auto& v) { return QString(v).split(s_newlineRegex); }));
                 manifestVersion = "";
                 for (auto& line : manifestLines) {
                     if (line.startsWith("Implementation-Version: ", Qt::CaseInsensitive)) {
@@ -613,52 +626,46 @@ bool processZIP(Mod& mod, [[maybe_unused]] ProcessingLevel level)
                 }
                 if (baseForgePopulated) {
                     details.version = manifestVersion;
-                    stop = true;
                 }
-                return true;
+                return baseForgePopulated;
             }
             if (filePath == "mcmod.info") {
-                details = ReadMCModInfo(file->readAll());
+                TRY_INTO(details, file->readAll().transform([](const auto& v) { return ReadMCModInfo(v); }))
                 isValid = true;
-                stop = true;
                 return true;
             }
             if (filePath == "quilt.mod.json") {
-                details = ReadQuiltModInfo(file->readAll());
+                TRY_INTO(details, file->readAll().transform([](const auto& v) { return ReadQuiltModInfo(v); }))
                 isValid = true;
-                stop = true;
                 return true;
             }
             if (filePath == "fabric.mod.json") {
-                details = ReadFabricModInfo(file->readAll());
+                TRY_INTO(details, file->readAll().transform([](const auto& v) { return ReadFabricModInfo(v); }))
                 isValid = true;
-                stop = true;
                 return true;
             }
             if (filePath == "forgeversion.properties") {
-                details = ReadForgeInfo(file->readAll());
+                TRY_INTO(details, file->readAll().transform([](const auto& v) { return ReadForgeInfo(v); }))
                 isValid = true;
-                stop = true;
                 return true;
             }
             if (filePath == "META-INF/nil/mappings.json") {
                 // nilloader uses the filename of the metadata file for the modid, so we can't know the exact filename
                 // thankfully, there is a good file to use as a canary so we don't look for nil meta all the time
                 isNilMod = true;
-                stop = !nilFilePath.isEmpty();
-                file->skip();
-                return true;
+                TRY(file->skip());
+                return !nilFilePath.isEmpty();
             }
             // nilmods can shade nilloader to be able to run as a standalone agent - which includes nilloader's own meta file
             if (filePath.endsWith(".nilmod.css") && filePath != "nilloader.nilmod.css") {
-                nilData = file->readAll();
+                TRY_INTO(nilData, file->readAll())
                 nilFilePath = filePath;
-                stop = isNilMod;
-                return true;
+                return isNilMod;
             }
-            file->skip();
-            return true;
-        })) {
+            TRY(file->skip());
+            return false;
+        }); !result) {
+        qWarning() << "Could not parse mod zip:" << result.error();
         return false;
     }
     if (isNilMod) {
@@ -678,8 +685,8 @@ bool processLitemod(Mod& mod, [[maybe_unused]] ProcessingLevel level)
 
     MMCZip::ArchiveReader zip(mod.fileinfo().filePath());
 
-    if (auto file = zip.goToFile("litemod.json"); file) {
-        details = ReadLiteModInfo(file->readAll());
+    if (const auto dataRes = zip.readFile("litemod.json"); dataRes) {
+        details = ReadLiteModInfo(dataRes.value());
 
         mod.setDetails(details);
         return true;
@@ -722,11 +729,8 @@ bool loadIconFile(const Mod& mod, QPixmap* pixmap)
     switch (mod.type()) {
         case ResourceType::ZIPFILE: {
             MMCZip::ArchiveReader zip(mod.fileinfo().filePath());
-            auto file = zip.goToFile(mod.iconPath());
-            if (file) {
-                auto data = file->readAll();
-
-                bool icon_result = ModUtils::processIconPNG(mod, std::move(data), pixmap);
+            if (auto dataRes = zip.readFile(mod.iconPath()); dataRes) {
+                bool icon_result = ModUtils::processIconPNG(mod, std::move(dataRes.value()), pixmap);
 
                 if (!icon_result) {
                     return png_invalid("invalid png image");  // icon png invalid
