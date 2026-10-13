@@ -70,7 +70,7 @@ void YggdrasilLoginDialog::startLogin()
 
     auto task = m_account->login();
     ProgressDialog progDialog(this);
-    progDialog.setSkipButton(true, tr("Abort"));
+    progDialog.showSkipButton(tr("Abort"));
     progDialog.execWithTask(task.get());
 
     if (task->getState() == Task::State::Succeeded) {

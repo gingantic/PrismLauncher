@@ -296,7 +296,7 @@ void ExternalToolsPage::on_authlibInjectorCheckBtn_clicked()
 {
     auto task = makeShared<AuthlibInjectorUpdateTask>(APPLICATION->settings(), APPLICATION->network(), APPLICATION->dataRoot());
     ProgressDialog progDialog(this);
-    progDialog.setSkipButton(true, tr("Abort"));
+    progDialog.showSkipButton(tr("Abort"));
     progDialog.execWithTask(task.get());
 
     updateAuthlibInjectorStatus();
@@ -314,7 +314,7 @@ void ExternalToolsPage::on_cloudflaredCheckBtn_clicked()
 {
     auto task = makeShared<CloudflaredUpdateTask>(APPLICATION->settings(), APPLICATION->network(), APPLICATION->dataRoot());
     ProgressDialog progDialog(this);
-    progDialog.setSkipButton(true, tr("Abort"));
+    progDialog.showSkipButton(tr("Abort"));
     progDialog.execWithTask(task.get());
 
     updateCloudflaredStatus();
